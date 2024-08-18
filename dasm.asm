@@ -32,7 +32,7 @@ $4bb  602 bytes (+90)
 cur     .word ?                 ; current address (word)
 opc     .byte ?                 ; current opcode
 len     .byte ?                 ; current # of operand bytes (0, 1 or 2)
-rix     .byte ?                 ; rockwell numbered opcode suffix, eg. BBR7
+bix     .byte ?                 ; bit numbered opcode suffix, eg. BBR7
 mode    .byte ?                 ; current address mode $0-e
 fmt     .byte ?                 ; operand output template; see s_mode_template
 tmp     .byte ?                 ; temp storage within several routines
@@ -176,7 +176,8 @@ _mask:
 ; display the mnemonic e.g. LDA or BBR2
 
 show_mnemonic:
-        stz rix                 ; default no Rockwell index
+        stz bix                 ; default not bit-indexed opcode
+        dec bix
 
         ; First check specials
         ;TODO this doesn't actually save space over repeated lookup
@@ -223,10 +224,9 @@ _nop:
         ldy #3
 -
         asl
-        rol rix
+        rol bix
         dey
         bne -
-        inc rix             ; store index+1 so non-zero
 _found:
         txa
         bra _decode
@@ -278,9 +278,8 @@ _decode:
         lda tmp
         jsr out                 ;TODO a trailing "X" could flag some mode exceptions, ie. ,Y vs ,X
 
-        lda rix
-        dea
-        bmi +                   ; do we have a trailing digit e.g. BBS3 ?
+        lda bix
+        bmi +                   ; is it a bit-indexed opcode e.g. BBS3 ?
         jsr prnbl
 +
         jsr prspc
@@ -550,10 +549,10 @@ mode_WXI    = n2 | 5        ; JMP ($1234,X) (*) one opcode
 mode_ZR     = n2 | 7        ; RMB $42,$1234 (*) pattern 7 then recurse to pattern 1
 
 s_mode_template:
-    .text "Y,)X,$(#"            ; reversed: #($@,X),Y
+    .text "Y,)X,$(#"            ; reversed: #($,X),Y
 
 mode_fmt:
-;              #($,X),Y         ; '#' is flagged by initial carry
+;              #($,X),Y         ; 1 or 2 byte address or branch target always inserted after $
         .byte %10100000         ; 0: #$@
         .byte %00100000	        ; 1: $@
         .byte %00111000	        ; 2: $@,x
@@ -561,7 +560,7 @@ mode_fmt:
         .byte %01100100	        ; 4: ($@)
         .byte %01111100	        ; 5: ($@,x)
         .byte %01100111	        ; 6: ($@),y
-        .byte %00110000         ; 7: $@,       => for z,r recurse to 1
+        .byte %00110000         ; 7: $@,       => first part of z,r follwed by pattern 1
 
 n_special_mode = 12
 
@@ -590,6 +589,5 @@ mode_default:
     .byte n2b(mode_ZX,  mode_ZX),   n2b(mode_ZX,  mode_ZP)
     .byte n2b(mode_NIL, mode_WY),   n2b(mode_NIL, mode_NIL)
     .byte n2b(mode_WX,  mode_WX),   n2b(mode_WX,  mode_ZR)
-
 
 dasm_data_end:
