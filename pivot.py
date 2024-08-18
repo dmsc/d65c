@@ -65,6 +65,6 @@ for i in range(256):
     k = int(bin(i+256)[:2:-1], 2)
     op = ops[k]
     # print(f"{k:02x} ", end=' ')
-    print(op['mnemonic'][:3], end=' ')
+    print(op['mnemonic'], end=' ')
 #        print(op['opcode'], end=' ')
 print()
