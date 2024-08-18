@@ -1,0 +1,5 @@
+.c65
+*.bin
+*.sym
+*.lst
+*.txt
