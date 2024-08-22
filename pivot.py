@@ -44,17 +44,18 @@ if False:
         print(f"char {k} {len(c)} distinct:", ', '.join(f"{k}: {n}" for k,n in c.items()))
 
 for i,op in enumerate(ops):
-    n = op['bytes'] - 1
-    data = "00 " * n + "   " * (4-n)
+    n = op['bytes']
+    data = "00 " * (n-1) + "   " * (4-n)
     arg = op['arg']
+    tgt = f"${i+n+4096:04x}"
     if arg in [None, 'A']:
         arg = ''
     else:
-        arg = arg.replace("a16", "$0000").replace("a8","$00").replace("d8","$00").replace("r8","$0000")
+        arg = arg.replace("a16", "$0000").replace("a8","$00").replace("d8","$00").replace("r8",tgt)
     opcode = op['opcode']
     mnem = op['mnemonic']
     mnem = dict(DEA='DEC', INA='INC').get(mnem, mnem)
-    s = f"{opcode} {data}{mnem} {arg}".upper().strip()
+    s = f"10{opcode}   {opcode} {data}{mnem} {arg}".upper().strip()
     print(s)
     if (i+1)%16 == 0: print()
 

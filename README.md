@@ -1,74 +1,23 @@
-../tali/c65/c65 -gg -r dasm.bin -a 0x200
+This is smallish disassembler that decodes all 256 opcodes for 65c02
+including an option for Rockwell/WDC bit operators.
 
-64tass --nostart --list=dasm.lst --output dasm.bin --labels=dasm.sym dasm.asm
+By default we show the extended bit operators RMBn, SMBn, BBRn, and BBSn
+as NOPs with equivalent length and addressing mode.   This compiles to 540 bytes
+including all data tables.  Enabling support for RMBn and friends adds another 64 bytes.
 
-https://docs.google.com/spreadsheets/d/1wf9PgigE5G9hAW63dF5ATjTwNdXEup0tbsFexUzrQEc/edit?gid=825377478#gid=825377478
+Background and further reading:
 
+- Source code for
+[Wozniak & Baum's 6502 disassembler](https://www.applefritter.com/files/Apple1WozDrDobbsDisasm.pdf)
+in 473 bytes(!).  You can find machine readable version a derived version of this code
+[here](https://github.com/jblang/supermon64/blob/master/supermon64.asm) though I haven't found a link to
+a clean version of the original.
 
-https://www.applefritter.com/files/Apple1WozDrDobbsDisasm.pdf
+- Discussion in the [6502.org forum](http://forum.6502.org/viewtopic.php?f=2&t=8147)
 
-much of the code shared here https://github.com/jblang/supermon64/blob/master/supermon64.asm
+- A spreadsheet with my
+    [exploration of the 65c02 opcode structure](https://docs.google.com/spreadsheets/d/1wf9PgigE5G9hAW63dF5ATjTwNdXEup0tbsFexUzrQEc/edit?gid=825377478#gid=825377478)
+    used for designing data tables
 
-
-TODO
-
-- excl other specials with bitops
-- excl bitops adr mode lines
-- don't consume opc until operand, use one inline nextbyte (mode 15?)
-)
-
-;TODO a trailing "X" could flag some mode exceptions, ie. ,Y vs ,X
-
-- switch length bit to LSB, then mode 7 & 15 are neighbors
-- fix c65 label reading
-- combine asl / rol and lsr / ror loop subroutine?
-
-$25f    logic               344 bytes  (incl putc 3 bytes)
-            setup                75 bytes
-    $2aa    mnemonic            126 bytes
-    $328    operand              40 bytes
-    $350    helpers             103 bytes
-$3b7    mnemonics data      198 bytes
-$47d    mode data            64 bytes
-$4bd    end
-            total               606
-            target              512
-            over                 94 bytes
-
-$261
-$4bb  602 bytes (+90)
-
-
-
-
-
-        sta len                 ; store 0, 1, or 2
-        ldy #$ff
--
-        iny
-        lda (dadr),y            ; print the opcode followed by len operand bytes
-        jsr prbyte
-        jsr prspc
-        cpy len
-        bne -
--
-        jsr pr3spc              ; print three space blocks to pad to width 12 total
-        iny
-        cpy #3
-        bne -
-
-(21)
-
--
-jsr prpadbyte
-iny
-cpy #3
-bne -
-
-prpadbyte:
-    cpy len
-    bpl pr3spc
-    lda (dadr),y
-    bra prbyte
-
-(19)
+- My [periodic table of 65c02 opcodes](https://patricksurry.github.io/periodic-65c02/)
+includes several useful reference links.
