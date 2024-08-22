@@ -8,7 +8,7 @@ s3w .sfunction s, f=0, (((s[0] & $1f)<<11) | ((s[1] & $1f)<<6) | ((s[2] & $1f)<<
 ; encode two nibbles to one byte
 n2b .sfunction lo, hi, ((hi<<4) | lo)
 
-INCLUDE_BITOPS :?= 1
+INCLUDE_BITOPS :?= 0
 
         * = 0
 
@@ -90,8 +90,8 @@ _mask:
         lsr                     ; nibble is fffn so A=fff and C=n
         tax                     ; X = fmt index
         lda #1
-        rol                     ; A = narg+1 (2, 3)
-        tay                     ; Y = narg+1
+        rol
+        tay                     ; Y = narg+1 (2, 3)
         stz flags               ; no special flags
         bra _continue
 
@@ -481,7 +481,7 @@ ix_special:
 
 dasm_data_mode:
 
-; there are 15 distinct addressing modes, three of which are only used as exceptions
+; There are 15 addressing modes, three of which (ZY, WI, WXI) only appear as exceptions
 ; we use a four bit index where the top bit is (just about) the operand length
 ; and the low three bits (almost) index one of eight formatting patterns
 
