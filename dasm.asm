@@ -47,12 +47,8 @@ pc      .word ?                 ; current address (word)
 opcode  .byte ?                 ; opcode
 args    .word ?                 ; operand bytes (must follow opcode location)
 oplen   .byte ?                 ; # of operand bytes (0, 1 or 2)
-flags   .byte ?                 ; formatting pattern and flags (N=1 for ZR; V=1 for R)
+format  .byte ?                 ; formatting bit pattern
 tmp     .word ?                 ; tmp storage within several routines
-
-.if INCLUDE_BITOPS
-bix     .byte ?                 ; bit number opcode suffix, eg. BBR7
-.endif
 
 
 ; =====================================================================
@@ -79,6 +75,9 @@ dasm:
         ; determine addressing mode
         ; in: pc
         ; out: A = 0..15
+
+        ldx #1                  ; set base length of 1
+        stx oplen
 
         lda (pc)
 
@@ -110,14 +109,19 @@ _found_mode:
         and #$f
 
         ; -------------------------------------------------------------
-        ; fetch mode detail to the operand length (including opcode)
-        ; along with formatting flags
+        ; extract length (including opcode) and formatting pattern
 
-        tax
-        lda mode_info,x         ; ff0pppnn
-        sta flags               ; keep a copy for formatting
-        and #3
-        sta oplen               ; 1,2 or 3 bytes
+        clv                     ; mode_R sets V=1
+        beq _impl               ; mode 0 is implied (len 1, format 0)
+        dea
+        lsr                     ; A is format, C is length (0 => 2 bytes, 1 => 3 bytes)
+        rol oplen               ; roll C to lsb of oplen leaving %10 or %11, leaving C=0
+        tax                     ; save the format offset
+        adc #121                ; 121+7 => 128, triggering V=1 for mode_R
+        lda mode_fmt,x          ; grab the format byte
+ _impl:
+        sta format              ; store format (or zero)
+        php                     ; save overflow status
 
         ; -------------------------------------------------------------
         ; print the opcode and each operand byte,
@@ -167,26 +171,29 @@ test_mnemonic:                  ; entry point for testing mnemonic table
         ; -------------------------------------------------------------
         ; otherwise it's a bitop instruction xaaby111
         ; where xy selects the base opcode and aab gives the bit index
+        ; y=0 selects RMB/SMB, y=1 selects BBR/BBS
+        ; x selects first or second of the pair
 
         ldx #mBITOPS
         lda opcode
-        bit #%1000              ; check bit 3
+        bit #%1000              ; check bit 3 (y)
         beq +
         inx
+        ; update format to mode_ZR (it wasn't mode_R so stashed V flag is OK)
+        ldy #format_ZR
+        sty format
 +
-        asl                     ; check bit 7=x, leaving A = aaby1110
+        asl                     ; check bit 7 (x), leaving A = aaby1110
         bcc +
         inx
         inx
 +
-        ldy #3                  ; roll top 3 bits from A into bix
-        stz bix                 ; initialize bit index to zero
+        ldy #5                  ; roll top 3 bits from A down to index
 -
-        asl
-        rol bix
+        lsr
         dey
         bne -
-
+        pha                     ; stash bit index for later
         txa
         bra _decode
 .endif
@@ -260,7 +267,7 @@ _rol5:
 .if INCLUDE_BITOPS
         bit tmp+1               ; tmp+1 is now %f0000000 or %00000000
         bpl +                   ; f flags a bit-indexed opcode e.g. BBS3
-        lda bix
+        pla
         jsr prnbl               ; ... so show the digit
 +
 .endif
@@ -270,25 +277,20 @@ _rol5:
         ; show the operand value(s) if any
 
 show_operand:
-        lda flags               ; ff0pppnn
-        dea                     ; immediate mode?
-        beq _done
+        plp                     ; recover V flag indicating relative address mode
+        lda format
+        beq _done               ; immediate mode?
 
 .if INCLUDE_BITOPS
-        bpl +
-        dec oplen                ; we'll consume bitops args zp,r in two passes
+        cmp #format_ZR
+        php                     ; save status for ?=format_ZR
+        bne +
+        dec oplen               ; we'll consume bitops args zp,r in two passes
 +
 .endif
-        lsr
-        lsr
-        and #$7                 ; extract ppp, the pattern index from flags byte
-        tax
-        lda mode_fmt,x          ; copy the format byte whose bits map to s_mode_template
-        sta tmp
-
         ldx #7                  ; loop through each bit in the template
 -
-        asl tmp
+        asl format
         bcc +                   ; display the corresponding character if bit is set
         lda s_mode_template,x
         jsr putc
@@ -304,18 +306,21 @@ show_operand:
         ; -------------------------------------------------------------
         ; bitops like XZYn $zz, $rr are a pain..
         ; The first pass with mode ZR will emit "$zz,"
-        ; since we decremented oplen above.  The flags tell use
-        ; we need a second pass, when we switch to mode R and
-        ; repeat to emit the target "$hhll".
+        ; since we decremented oplen above.
+        ; Then we'll run a second pass, switching to mode R
+        ; to emit the branch target "$hhll".
 
-        bit flags               ; ZR mode has the N flag set
-        bpl _done
+_pla:
+        plp
+        bne _done
 
         lda args+1              ; shift the second operand into position
         sta args
-        lda #mode_info_R        ; switch to mode R and repeat
-        sta flags
-        bra show_operand
+        lda #format_R           ; switch to mode R
+        sta format
+        bit jmp_putc            ; set V=1
+        php
+        bra show_operand        ; repeat
 .endif
 _done:
 prnl:
@@ -339,8 +344,7 @@ prarg:
         bra prword              ; print the address <A,Y>
 
 _one:
-        bit flags               ; mode R is flagged with V=1
-        bvc prbyte              ; regular byte
+        bvc prbyte              ; mode R is flagged with V=1
 
 prrel:
     ; show the target address of a branch instruction
@@ -380,6 +384,7 @@ prnbl:
         BMI     putc            ; Yes, output it.
         ADC     #$06            ; Add offset for letter. (Carry is set)
 putc:
+jmp_putc:
         jmp kernel_putc         ; redirect to kernel routine
 
 prpadnext:
@@ -552,59 +557,33 @@ ix_special:
 .comment
 
 There are 15 addressing modes, three of which (ZY, WI, WXI) only appear as exceptions
-we use a four bit index where the top bit is (just about) the operand length
-and the low three bits (almost) index one of eight formatting patterns
+we use a four bit index where the lsb indicates a length of 2 or 3 (m_IMPL is a special case)
+and the other three bits index an operand formatting pattern
 
 .endcomment
 
-; helper macro to store opcode length and format details
- minfo .sfunction n, fmt, flgs, (flgs | (fmt << 2) | n)
+; helper macro to pack opcode length and operand format in four bits
+; we'll unpack by decrementing and then recover the length bit and format
+mnbl .sfunction n, fmt, ( (n%2) + (fmt << 1) + 1 )
 
-VFLG = %01000000    ; flags mode R so we know to show a target address
-NFLG = %10000000    ; flags mode ZR so we know to do two passes for $zz,$rr
+mode_NIL    = 0	            ; (*) INC, RTS (note we don't emit INC A)
+mode_ZP     = mnbl(2,0)     ; LDA $42
+mode_W      = mnbl(3,0)     ; LDA $1234
+mode_IMM    = mnbl(2,1)     ; LDA #$42
+; 4 is unused
+mode_ZX     = mnbl(2,2)     ; LDA $42,X
+mode_WX     = mnbl(3,2)     ; LDA $1234,X
+mode_ZY     = mnbl(2,3)     ; LDA $42,Y
+mode_WY     = mnbl(3,3)     ; LDA $1234,Y
+mode_ZI     = mnbl(2,4)     ; LDA ($42)
+mode_WI     = mnbl(3,4)     ; JMP ($1234)   (*) one opcode
+mode_ZXI    = mnbl(2,5)     ; LDA ($42,X)
+mode_WXI    = mnbl(3,5)     ; JMP ($1234,X) (*) one opcode
+mode_ZIY    = mnbl(2,6)     ; LDA ($42),Y
+; 14 is unused
+mode_R      = mnbl(2,7)     ; BRA $1234
 
-; enumerate the 15 address modes so we can pack two to a byte
-
-mode_NIL    = 0	    ; INC, RTS (note we don't write INC A)
-mode_ZP     = 1     ; LDA $42
-mode_W      = 2     ; LDA $1234
-mode_IMM    = 3     ; LDA #$42
-mode_ZX     = 4     ; LDA $42,X
-mode_WX     = 5     ; LDA $1234,X
-mode_ZY     = 6     ; LDA $42,Y
-mode_WY     = 7     ; LDA $1234,Y
-mode_ZI     = 8     ; LDA ($42)
-mode_WI     = 9     ; JMP ($1234)   (*) one opcode
-mode_ZXI    = 10    ; LDA ($42,X)
-mode_WXI    = 11    ; JMP ($1234,X) (*) one opcode
-mode_ZIY    = 12    ; LDA ($42),Y
-mode_R      = 13    ; BRA $1234
-.if INCLUDE_BITOPS
-mode_ZR     = 14    ; RMB $42,$1234 (*) pattern 7 then recurse to pattern 1
-.endif
-
-; ---------------------------------------------------------------------
-; adress mode detail with one byte per address mode
-
-mode_info:
-    .byte minfo(1,0,0)          ; NIL   - we depend on its value of #$1
-    .byte minfo(2,0,0)          ; ZP
-    .byte minfo(3,0,0)          ; W
-    .byte minfo(2,1,0)          ; IMM
-    .byte minfo(2,2,0)          ; ZX
-    .byte minfo(3,2,0)          ; WX
-    .byte minfo(2,3,0)          ; ZY
-    .byte minfo(3,3,0)          ; WY
-    .byte minfo(2,4,0)          ; ZI
-    .byte minfo(3,4,0)          ; WI
-    .byte minfo(2,5,0)          ; ZXI
-    .byte minfo(3,5,0)          ; WXI
-    .byte minfo(2,6,0)          ; ZIY
-mode_info_R = minfo(2,0,VFLG)   ; we'll repeat in this mode while dealing ZR
-    .byte mode_info_R           ; R
-.if INCLUDE_BITOPS
-    .byte minfo(3,7,NFLG)       ; ZR
-.endif
+; we'll deal with mode_ZR, e.g. RMB $42,$1234, as an exception in code
 
 ; ---------------------------------------------------------------------
 ; address mode formatting
@@ -628,10 +607,9 @@ mode_fmt:
         .byte %01100100	        ; 4: ($@)
         .byte %01111100	        ; 5: ($@,x)
         .byte %01100111	        ; 6: ($@),y
-.if INCLUDE_BITOPS
-        .byte %00110000         ; 7: $@,       => first part of z,r follwed by pattern 1
-.endif
-
+format_R  =   %00100000
+        .byte format_R          ; 7: $@     (duplicate of 0 for mode_R)
+format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
 
 ; ---------------------------------------------------------------------
 ; lookup tables mapping opcode slices to address modes
@@ -652,21 +630,11 @@ mode_tbl:
     .byte n2b(mode_IMM, mode_ZXI),  n2b(mode_IMM, mode_NIL)
     .byte n2b(mode_ZP,  mode_ZP),   n2b(mode_ZP,  mode_ZP)
     .byte n2b(mode_NIL, mode_IMM),  n2b(mode_NIL, mode_NIL)
-    .byte n2b(mode_W,   mode_W)
-.if INCLUDE_BITOPS
-    .byte                           n2b(mode_W,   mode_ZR)
-.else
-    .byte                           n2b(mode_W,   mode_W)
-.endif
+    .byte n2b(mode_W,   mode_W),    n2b(mode_W,   mode_W)       ; <= last becomes ZR for BITOPS
     .byte n2b(mode_R,   mode_ZIY),  n2b(mode_ZI,  mode_NIL)
     .byte n2b(mode_ZX,  mode_ZX),   n2b(mode_ZX,  mode_ZP)
     .byte n2b(mode_NIL, mode_WY),   n2b(mode_NIL, mode_NIL)
-    .byte n2b(mode_WX,  mode_WX)
-.if INCLUDE_BITOPS
-    .byte                           n2b(mode_WX,   mode_ZR)
-.else
-    .byte                           n2b(mode_WX,   mode_WX)
-.endif
+    .byte n2b(mode_WX,  mode_WX),   n2b(mode_WX,   mode_WX)     ; <= last becomes ZR for BITOPS
 
 ; ---------------------------------------------------------------------
 ; address mode lookup for opcode that don't fit the pattern
