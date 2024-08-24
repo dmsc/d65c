@@ -30,15 +30,6 @@ Run like:
 INCLUDE_BITOPS :?= 0            ; SMB0-7 etc add about 60 bytes
 
 ; -------------------------------------------------------------
-; helper macros
-
-; encode "ABC" as %aaa aabbb  bbc ccccf
-s3w .sfunction s, f=0, (((s[0] & $1f)<<11) | ((s[1] & $1f)<<6) | ((s[2] & $1f)<<1) | f )
-
-; encode two nibbles into one byte
-n2b .sfunction lo, hi, ((hi<<4) | lo)
-
-; -------------------------------------------------------------
 ; zero page storage, specific location is not important
 
         * = 0
@@ -46,10 +37,9 @@ n2b .sfunction lo, hi, ((hi<<4) | lo)
 pc      .word ?                 ; current address (word)
 opcode  .byte ?                 ; opcode
 args    .word ?                 ; operand bytes (must follow opcode location)
-oplen   .byte ?                 ; # of operand bytes (0, 1 or 2)
+oplen   .byte ?                 ; bytes to disassemble including opcode (1, 2 or 3)
 format  .byte ?                 ; formatting bit pattern
 tmp     .word ?                 ; tmp storage within several routines
-
 
 ; =====================================================================
 ;
@@ -69,15 +59,13 @@ dasm:
         ldy pc
         lda pc+1
         jsr prword
+;TODO can we simplify all the jsr prxspc ?
         jsr pr3spc
 
         ; -------------------------------------------------------------
         ; determine addressing mode
         ; in: pc
         ; out: A = 0..15
-
-        ldx #1                  ; set base length of 1
-        stx oplen
 
         lda (pc)
 
@@ -106,22 +94,25 @@ _found_mode:
         lsr
         lsr
 +
-        and #$f
-
         ; -------------------------------------------------------------
         ; extract length (including opcode) and formatting pattern
 
-        clv                     ; mode_R sets V=1
-        beq _impl               ; mode 0 is implied (len 1, format 0)
-        dea
-        lsr                     ; A is format, C is length (0 => 2 bytes, 1 => 3 bytes)
-        rol oplen               ; roll C to lsb of oplen leaving %10 or %11, leaving C=0
-        tax                     ; save the format offset
-        adc #121                ; 121+7 => 128, triggering V=1 for mode_R
+        ldy #1                  ; oplen is at least 1
+        sty oplen
+
+        clv                     ; we'll set V=1 for mode_R
+        and #$f
+        beq _impl               ; implied mode? (len 1, format 0)
+
+        dea                     ; now A is pppn where format=ppp with n+1 operand bytes
+        lsr                     ; A is format, C=n
+        rol oplen               ; roll C to lsb of oplen leaving %10 or %11 and C=0
+        tax                     ; save format index
+        adc #121                ; set V=1 for mode_R since 121+7 = 128
         lda mode_fmt,x          ; grab the format byte
  _impl:
-        sta format              ; store format (or zero)
-        php                     ; save overflow status
+        sta format              ; store format (or zero for implied)
+        php                     ; save overflow flag
 
         ; -------------------------------------------------------------
         ; print the opcode and each operand byte,
@@ -150,13 +141,17 @@ test_mnemonic:                  ; entry point for testing mnemonic table
         ldx #n_special-1
 -
         cmp op_special,x
-        beq _found_mnem
+        bne +
+        lda ix_special,x
+        bra _w2s
++
         dex
         bpl -
 
         ; -------------------------------------------------------------
         ; Then try matching one of several bitmasked slice
-        ; This only falls through if we're in INCLUDE_BITOPS mode
+        ; Excluding bitops, these patterns cover all opcodes
+        ; so we can skip the final check and just fall through
         ldx #0
 -
         lda slice_mask,x
@@ -195,16 +190,12 @@ test_mnemonic:                  ; entry point for testing mnemonic table
         bne -
         pha                     ; stash bit index for later
         txa
-        bra _decode
+        bra _w2s
 .endif
-
-_found_mnem:
-        lda ix_special,x
-        bra _decode
 
 _found_slice:
         ; -------------------------------------------------------------
-        ; found a matching slice, now calculate index into mnemonic table
+        ; found a matching slice, calculate index into mnemonic table
 
         lda opcode              ; aaabbbcc
         stx tmp                 ; X is 0, 1,2,3, 4,5,6,7,8
@@ -212,10 +203,8 @@ _found_slice:
         bmi _x0                 ; For X=0 we want index aaabb
 
         cpx #4                  ; X < 4 ?
-        bpl +
-        lda #mNOP               ; slice 1,2,3 all map to NOP
-        bra _decode
-+
+        bmi _nop
+
         ; the remaining five slices map to four groups of 8 opcodes
         ; with an index like 001vwaaa where vw are the two LSB of X
 
@@ -228,16 +217,17 @@ _x0:
         ror                     ; 0aaabbbc or 1vwaaabb
         lsr                     ; 00aaabbb or 01vwaaab
         lsr                     ; 000aaabb or 001vwaaa
-        ; fall through to decode
 
-_decode:
+        .byte $2C               ; bit llhh to skip past _nop, aka bra _w2s
+_nop:
+        lda #mNOP               ; slice 1,2,3 all map to NOP
+
         ; -------------------------------------------------------------
-        ; given the index of a packed word in our mnemonic table
+        ; given A indexing a packed word in our mnemonic table
         ; emit the corresponding three characters
         ; optionally add a bit index digit for bit ops
 
-        ; A is an index to the matching word in mnemonic table
-
+_w2s:
         asl                     ; double to get byte offset
         tax
 
@@ -252,7 +242,7 @@ _decode:
         ldx #3
 _unpack:
         ldy #5
-        lda #%10                ; eventually 10xxxxx
+        lda #%10                ; eventually %010xxxxx
 _rol5:
         asl tmp
         rol tmp+1
@@ -265,8 +255,8 @@ _rol5:
         bne _unpack
 
 .if INCLUDE_BITOPS
-        bit tmp+1               ; tmp+1 is now %f0000000 or %00000000
-        bpl +                   ; f flags a bit-indexed opcode e.g. BBS3
+        bit tmp+1               ; tmp+1 is now %f0000000 where f flags
+        bpl +                   ; a bit-indexed opcode e.g. BBS3
         pla
         jsr prnbl               ; ... so show the digit
 +
@@ -283,9 +273,13 @@ show_operand:
 
 .if INCLUDE_BITOPS
         cmp #format_ZR
-        php                     ; save status for ?=format_ZR
+        php                     ; save status for =? format_ZR
         bne +
-        dec oplen               ; we'll consume bitops args zp,r in two passes
+
+        ; oplen is %11 but we want to consume only one arg
+        ; indicated by the parity bit.  We increment to oplen=%100
+        ; so that both passes get C=0 from lsr oplen
+        inc oplen               ; we'll consume bitops args zp,r in two passes
 +
 .endif
         ldx #7                  ; loop through each bit in the template
@@ -310,22 +304,21 @@ show_operand:
         ; Then we'll run a second pass, switching to mode R
         ; to emit the branch target "$hhll".
 
-_pla:
         plp
         bne _done
 
-        lda args+1              ; shift the second operand into position
-        sta args
         lda #format_R           ; switch to mode R
         sta format
-        bit jmp_putc            ; set V=1
+        bit jmp_op              ; set V=1
         php
         bra show_operand        ; repeat
 .endif
 _done:
 prnl:
         lda #$0a                ; add a newline and return via putc
-        bra putc
+putc:
+jmp_op:
+        jmp kernel_putc         ; redirect to kernel routine
 
 ; ---------------------------------------------------------------------
 ; various helper functions
@@ -334,40 +327,38 @@ prarg:
     ; print one or two operand bytes as byte, word or target address
     ; (from a relative branch) based on oplen and mode
 
-        lda oplen               ; length is 2 or 3, meaning 1 or 2 operands
-        lsr                     ; so LSB tells us one (0) or two (1) bytes
-        lda args                ; fetch first arg
-        bcc _one                ; one and done?
-
-        tay                     ; stash LSB
-        lda args+1              ; fetch MSB
-        bra prword              ; print the address <A,Y>
-
-_one:
-        bvc prbyte              ; mode R is flagged with V=1
-
+        ; oplen is 2 (%10) or 3 (%11) so lsr gives C=0 for 1 operand, C=1 for 2
+        lsr oplen               ; length is 2 or 3, meaning 1 or 2 operands
+        lda args+1              ; speculatively fetch second
+        ldy args                ; fetch first operand
+        bcs prword              ; two operands, print <A Y>
+.if INCLUDE_BITOPS
+        sta args                ; speculatively shuffle 2nd operand for mode_ZR
+.endif
+        tya
+        bvc prbyte              ; one operand, not mode_R
+        ; fall through to mode R
 prrel:
     ; show the target address of a branch instruction
     ; we've already incremented PC past the operands
     ; so it is the baseline for the branch
-        ldy pc+1                ; fetch MSB
-        cmp #0                  ; test A flags without using X
-        bpl +
-        dey                     ; if negative, dec MSB
-+
-        clc
-        adc pc                  ; calc LSB of target
+    ; we have the offset in A, with sign in N, C=0
+        php                     ; save sign of offset
+        adc pc                  ; C already clear from #args check
+        tay                     ; Y is LSB
+        lda pc+1
         bcc +
-        iny                     ; handle carry
+        ina
 +
-        pha                     ; swap Y, A
-        tya
-        ply
+        plp
+        bpl +
+        dea
++
 prword:
-    ; print the word with LSB=Y, MSB=A in big-endian order as <A><Y>
-        jsr prbyte
+    ; print the word with LSB=Y, MSB=A in big-endian order as <A Y>
+        jsr prbyte              ; print MSB and fall through
+prbytey:
         tya
-        ; fall through
 prbyte:
     ; wozmon code to print a nibble as two bytes
         PHA                     ; Save A for LSD.
@@ -383,9 +374,7 @@ prnbl:
         CMP     #$3A            ; Digit?
         BMI     putc            ; Yes, output it.
         ADC     #$06            ; Add offset for letter. (Carry is set)
-putc:
-jmp_putc:
-        jmp kernel_putc         ; redirect to kernel routine
+        BRA     putc
 
 prpadnext:
     ; consume the opcode and operand bytes
@@ -401,6 +390,7 @@ prpadnext:
         bne +
         inc pc+1
 +
+;TODO is there a ldx #spc / fallthru here?
         bra prspc               ; add trailing space
 
         ; done operand, pad with spaces
@@ -423,13 +413,23 @@ prspc:
 ; and finally tables to format the operands for each address mode.
 ;
 
+; -------------------------------------------------------------
+; helper macros
+
+; encode "ABC" as %aaa aabbb  bbc ccccf
+s3w .sfunction s, f=0, (((s[0] & $1f)<<11) | ((s[1] & $1f)<<6) | ((s[2] & $1f)<<1) | f )
+
+; encode two nibbles into one byte
+n2b .sfunction lo, hi, ((hi<<4) | lo)
+
+
 .comment
 
 Excluding a few special cases, we can group the opcodes in slices based on fixed
 combinations of the least signifcant bits.
 Representing the opcode as (msb) aaabbbcc (lsb) we have the following patterns:
 
-X       Pattern     Mask   Target   Opcodes Offset  Index
+ X      Pattern     Mask   Target   Opcodes Offset  Index
  000    aaabb000    %111   %000     32x1    %0      aaabb   A >> 3
 
  001    aaa00010    %11111 %00010   1x8     %1000000  0     NOP
@@ -437,8 +437,8 @@ X       Pattern     Mask   Target   Opcodes Offset  Index
 
  011    11a1b100    %11010111 %11010100 1x4 %1000000  0     NOP
 
-These slices are indexed with low two bits of X along with aaa.
-there are five slices with the first and last mapping to the same opcode,
+The next slices are indexed with the the two low bits of X along with aaa.
+There are five slices with the first and last mapping to the same opcode,
 so we can handily index by the two lower bits of X
 
  100    aaa10010    %11111 %10010   8x1     %110000 aaa     A >> 5  * same opcodes as X=2
@@ -461,8 +461,8 @@ i.e. xaaby111 where xy select the opcode and aab give the bit index.
 ; ---------------------------------------------------------------------
 ; opcode mnemonic slices
 
-n_slice = 9
 .if INCLUDE_BITOPS
+n_slice = 9
 
 slice_mask:
     .byte %111, %11111, %111, %11010111, %11111, %11111, %11, %111, %11
@@ -470,13 +470,14 @@ slice_match:
     .byte %000, %00010, %011, %11010100, %10010, %11010, %10, %100, %01
 
 .else
-
-; one mask differs -------+
-;                         |
-slice_mask:  ;            v
-    .byte %111, %11111,  %11, %11010111, %11111, %11111, %11, %111, %11
+n_slice = 8
+; we skip final check and just fall through without bitops ---------+
+; one mask differs -------+                                         |
+;                         |                                         |
+slice_mask:  ;            v                                         v
+    .byte %111, %11111,  %11, %11010111, %11111, %11111, %11, %111
 slice_match:
-    .byte %000, %00010,  %11, %11010100, %10010, %11010, %10, %100, %01
+    .byte %000, %00010,  %11, %11010100, %10010, %11010, %10, %100
 
 .endif
 
@@ -690,10 +691,10 @@ test_dasm_self:
 
 test_all:
     ; simulate disassembly of each opcode X at address $1000+X
-        lda #$10
-        sta pc+1                ; pc = $1000
         stz opcode              ; opcode = 0
 -
+        lda #$10
+        sta pc+1                ; pc = $10xx
         lda opcode              ; loop
         sta pc                  ; set pc = $1000 + opcode
         sta (pc)                ; write opcode there
