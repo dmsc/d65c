@@ -54,15 +54,6 @@ tmp     .word ?                 ; tmp storage within several routines
 
 dasm:
         ; -------------------------------------------------------------
-        ; display current address followed by three spaces
-
-        ldy pc
-        lda pc+1
-        jsr prword
-;TODO can we simplify all the jsr prxspc ?
-        jsr pr3spc
-
-        ; -------------------------------------------------------------
         ; determine addressing mode
         ; in: pc
         ; out: A = 0..15
@@ -115,30 +106,63 @@ _found_mode:
         php                     ; save overflow flag
 
         ; -------------------------------------------------------------
-        ; print the opcode and each operand byte,
-        ; copying them to opcode/args in the process
+        ; Print the current address
 
-        ; loop Y=0,1,oplen-1, oplen,..3
-        ldy #0
--
-        jsr prpadnext           ; copy *pc++, showing "XX " then pad with "   "
-        iny
-        cpy #4
-        bne -
+        ldy pc
+        lda pc+1
+        jsr prword
+
+        ; -------------------------------------------------------------
+        ; Print the opcode and each operand byte, copying to
+        ; opcode/args zp storage as we go.  We want them nicely
+        ; padded whether they have 0, 1 or 2 operands so we use
+        ; four fields of width 3.  The first and last are always
+        ; empty, the others show either a byte with one space
+        ; or three spaces.
+        ;
+        ;     000111222333444
+        ; 1234   11          XYZ ...
+        ; 1234   22 00       UVW ...
+        ; 1234   33 00 00    RST ...
+
+        ldy #$ff                ; count fields -1, 0, 1, 2, 3
+
+_3spcs:
+        ldx #2                  ; print three spaces (X=2,1,0)
+_spcs:
+        jsr prspc               ; print a space
+        dex
+        bpl _spcs
+
+        iny                     ; next 3 char field
+        cpy #4                  ; done?
+        beq find_mnemonic
+
+        cpy oplen               ; finished operands?
+        bpl _3spcs              ; right justify
+
+        lda (pc)                ; fetch next byte
+        sta opcode,y            ; save to opcode, args
+        inc pc                  ; advance pc
+        bne +
+        inc pc+1
++
+        jsr prbyte              ; show it
+        bra _spcs               ; X is already <= 0 so _spcs will emit one space
+
 
         ; -------------------------------------------------------------
         ; determine mnemonic from opcode e.g. LDA or BBR2
         ; in: opcode
         ; out: X index to mnemonic table
 
-test_mnemonic:                  ; entry point for testing mnemonic table
-
+find_mnemonic:
         lda opcode
 
         ; -------------------------------------------------------------
         ; First check opcodes that don't follow a clear pattern
 
-        ldx #n_special-1
+        ldx #n_special-1        ; loop backward to save cpx
 -
         cmp op_special,x
         bne +
@@ -316,6 +340,10 @@ show_operand:
 _done:
 prnl:
         lda #$0a                ; add a newline and return via putc
+        .byte $2C               ; bit llhh instead of bra putc
+prspc:
+    ; print one space
+        lda #' '
 putc:
 jmp_op:
         jmp kernel_putc         ; redirect to kernel routine
@@ -376,34 +404,6 @@ prnbl:
         ADC     #$06            ; Add offset for letter. (Carry is set)
         BRA     putc
 
-prpadnext:
-    ; consume the opcode and operand bytes
-    ; printing them as we go, padding to right align
-
-        cpy oplen               ; loop through Y=0,1,oplen-1, oplen,..3
-        bpl pr3spc              ; pad after operands
-
-        lda (pc)
-        sta opcode,y            ; fill opcode, args
-        jsr prbyte              ; show opcode/operand
-        inc pc                  ; advance pc
-        bne +
-        inc pc+1
-+
-;TODO is there a ldx #spc / fallthru here?
-        bra prspc               ; add trailing space
-
-        ; done operand, pad with spaces
-pr3spc:
-    ; print three spaces
-        jsr prspc
-        jsr prspc
-prspc:
-    ; print one space
-        lda #' '
-        bra putc
-
-
 ; =====================================================================
 ;
 ; We use several data tables to drive the disassembly
@@ -421,7 +421,6 @@ s3w .sfunction s, f=0, (((s[0] & $1f)<<11) | ((s[1] & $1f)<<6) | ((s[2] & $1f)<<
 
 ; encode two nibbles into one byte
 n2b .sfunction lo, hi, ((hi<<4) | lo)
-
 
 .comment
 
@@ -732,7 +731,7 @@ _loop:
         rol opcode
         dey
         bne -
-        jsr test_mnemonic
+        jsr find_mnemonic
         inc pc
         bne _loop
 
