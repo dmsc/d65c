@@ -27,7 +27,7 @@ Run like:
 ; This adds about 64 bytes.  Otherwise these instructions are disassembled
 ; as NOP with equivalent addressing mode/size.
 
-INCLUDE_BITOPS :?= 0            ; SMB0-7 etc add about 60 bytes
+INCLUDE_BITOPS :?= 1            ; SMB0-7 etc add about 60 bytes
 
 ; -------------------------------------------------------------
 ; zero page storage, specific location is not important
@@ -197,21 +197,21 @@ find_mnemonic:
         lda opcode
         bit #%1000              ; check bit 3 (y)
         beq +
-        inx
+        inx                     ; offset++
         ; update format to mode_ZR (it wasn't mode_R so stashed V flag is OK)
         ldy #format_ZR
         sty format
 +
         asl                     ; check bit 7 (x), leaving A = aaby1110
         bcc +
-        inx
+        inx                     ; offset += 2
         inx
 +
-        ldy #5                  ; roll top 3 bits from A down to index
--
+        lsr                     ; roll top 3 bits from A down to index
         lsr
-        dey
-        bne -
+        lsr
+        lsr
+        lsr
         pha                     ; stash bit index for later
         txa
         bra _w2s
@@ -223,8 +223,8 @@ _found_slice:
 
         lda opcode              ; aaabbbcc
         stx tmp                 ; X is 0, 1,2,3, 4,5,6,7,8
-        cpx #1                  ; X < 1 ?
-        bmi _x0                 ; For X=0 we want index aaabb
+        cpx #1                  ; check for X=0 with carry bit
+        bcc _x0                 ; For X=0 we want index aaabb and leave C=0
 
         cpx #4                  ; X < 4 ?
         bmi _nop
@@ -236,8 +236,8 @@ _found_slice:
         ror                     ; waaabbbc
         lsr tmp                 ; C=v
         ror                     ; vwaaabbb
-        sec
-_x0:
+        sec                     ; C=1
+_x0:                            ; note C=0 if we entered via X=0
         ror                     ; 0aaabbbc or 1vwaaabb
         lsr                     ; 00aaabbb or 01vwaaab
         lsr                     ; 000aaabb or 001vwaaa
