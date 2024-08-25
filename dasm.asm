@@ -27,7 +27,7 @@ Run like:
 ; This adds about 64 bytes.  Otherwise these instructions are disassembled
 ; as NOP with equivalent addressing mode/size.
 
-INCLUDE_BITOPS :?= 1            ; SMB0-7 etc add about 60 bytes
+INCLUDE_BITOPS :?= 0            ; SMB0-7 etc add about 60 bytes
 
 ; -------------------------------------------------------------
 ; zero page storage, specific location is not important
