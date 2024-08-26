@@ -265,14 +265,16 @@ _w2s:
         sta tmp+1
         ldx #3
 _unpack:
-        ldy #5
-        lda #%10                ; eventually %010xxxxx
+        ; we eventualy want %010xxxxx
+        ; so start with A=%1010 and rol left until the top
+        ; bit falls off into the carry leaving 010 from A
+        ; and five bits from tmp/tmp+1
+        lda #%1010
 _rol5:
         asl tmp
         rol tmp+1
         rol a
-        dey
-        bne _rol5
+        bcc _rol5
 
         jsr putc
         dex
