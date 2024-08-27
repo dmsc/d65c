@@ -61,13 +61,12 @@ dasm:
         lda (pc)
 
         ; check if opcode has special mode
-        ldx #n_normal_mode      ; use offset relative to mode_tbl
+        ldx #128-n_special_mode      ; use offset relative to mode_tbl
 -
-        cmp op_special_mode-n_normal_mode,x
+        cmp op_special_mode+n_special_mode-128,x
         beq _found_mode
         inx
-        cpx #n_normal_mode + n_special_mode
-        bne -
+        bpl -
 
         ; otherwise fetch mode from lookup table using bits ...bbbcc
         ; two mode nibbles are packed in each byte so first
@@ -544,16 +543,6 @@ mSTP = mSpecial + 5
 mDEX = mSpecial + 6
 
 ; ---------------------------------------------------------------------
-; lookup for opcodes that don't fit a simple pattern
-
-n_special = 15
-
-op_special:
-    .byte $14, $1c, $4c, $6c, $7c, $89, $8a, $9c, $9e, $a2, $aa, $cb, $db, $ca, $ea
-ix_special:
-    .byte mTRB,mTRB,mJMP,mJMP,mJMP,mBIT,mTXA,mSTZ,mSTZ,mLDX,mTAX,mWAI,mSTP,mDEX,mNOP
-
-; ---------------------------------------------------------------------
 ; address mode decoding
 
 .comment
@@ -650,19 +639,30 @@ so again there might be a more efficient representation.
 
 .endcomment
 
+; ---------------------------------------------------------------------
+; lookup for opcodes that don't fit a simple pattern
+
+n_special = 15
+
+op_special:
+    .byte $14, $1c, $4c, $6c, $7c, $89, $8a, $9c, $9e, $a2, $aa, $cb, $db, $ca, $ea
+ix_special:
+    .byte mTRB,mTRB,mJMP,mJMP,mJMP,mBIT,mTXA,mSTZ,mSTZ,mLDX,mTAX,mWAI,mSTP,mDEX,mNOP
+
 n_normal_mode = 32
 n_special_mode = 12
-
-mode_special:
-    .byte n2b(mode_W,   mode_NIL), n2b(mode_NIL, mode_R)
-    .byte n2b(mode_WI,  mode_ZP),  n2b(mode_ZY,  mode_ZY)
-    .byte n2b(mode_W,   mode_WXI), n2b(mode_W,   mode_WY)
 
 op_special_mode:
     .byte $20, $40, $60, $80
     .byte $6c, $14, $96, $b6
     .byte $1c, $7c, $9c, $be
 
+mode_special:
+    .byte n2b(mode_W,   mode_NIL), n2b(mode_NIL, mode_R)
+    .byte n2b(mode_WI,  mode_ZP),  n2b(mode_ZY,  mode_ZY)
+    .byte n2b(mode_W,   mode_WXI), n2b(mode_W,   mode_WY)
+
+.cerror * - mode_tbl != $40, "mode_special must end just at +64 bytes from mode_tbl"
 ; ---------------------------------------------------------------------
 ; dasm ends
 ; ---------------------------------------------------------------------
