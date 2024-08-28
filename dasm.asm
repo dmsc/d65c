@@ -1,10 +1,9 @@
 ; =====================================================================
-;
-; A tiny disassembler that decodes all 256 opcodes for 65c02
-; including an option for Rockwell/WDC bit operators
-;
 
 .comment
+
+A tiny disassembler that decodes all 256 opcodes for 65c02
+including an option for Rockwell/WDC bit operators.
 
 Requires a kernel_putc routine that outputs the character in A
 while preserving X and Y.  A c65/py65mon compatible routine
@@ -16,6 +15,15 @@ Compile like:
 
 Run like:
     c65 -gg -r dasm.bin -a 0x200 -l dasm.sym
+
+The test routines can be used to check expected output:
+
+    g 600       ; test_dasm_self: disassemble first $100 bytes of self
+    g 611       ; test_all: disassemble every opcode
+    g 632       ; test_mnemonic_table: generate a compact mnemonic table
+
+pivot.py generates the expected output from a data file of opcodes
+which should match the latter two excluding extra bytes for extended NOPs.
 
 .endcomment
 
@@ -161,11 +169,11 @@ find_mnemonic:
         ; -------------------------------------------------------------
         ; First check opcodes that don't follow a clear pattern
 
-        ldx #n_special-1        ; loop backward to save cpx
+        ldx #n_special_mnem-1   ; loop backward to save cpx
 -
-        cmp op_special,x
+        cmp op_special_mnem,x
         bne +
-        lda ix_special,x
+        lda ix_special_mnem,x
         bra _w2s
 +
         dex
@@ -517,7 +525,7 @@ mSTZ = 59
 
 .if INCLUDE_BITOPS
 
-mBITOPS = 65
+mBITOPS = 64
 ; bitops xaaby111 with op xy repeated 8x
     .word s3w("RMB",1), s3w("BBR",1), s3w("SMB",1), s3w("BBS",1)
 
@@ -623,9 +631,9 @@ format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
 ; ---------------------------------------------------------------------
 ; lookup for opcodes that don't fit a simple pattern
 
-n_special = 15
+n_special_mnem = 15
 
-op_special:
+op_special_mnem:
     .byte  $4c, $89, $8a, $9e, $a2, $aa, $cb, $db, $ca, $ea, $6c, $14, $1c, $7c, $9c
 
 n_special_mode = 12
@@ -665,7 +673,7 @@ mTAX = mSpecial + 3
 mWAI = mSpecial + 4
 mSTP = mSpecial + 5
 
-ix_special:
+ix_special_mnem:
     .byte mJMP,mBIT,mTXA,mSTZ,mLDX,mTAX,mWAI,mSTP,mDEX,mNOP,mJMP,mTRB,mTRB,mJMP,mSTZ
 
 ; ---------------------------------------------------------------------
