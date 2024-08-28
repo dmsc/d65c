@@ -343,8 +343,10 @@ show_operand:
 
         lda #format_R           ; switch to mode R
         sta format
-        bit jmp_op              ; set V=1
-        php
+        asl
+        pha
+;        sbc #$80                ; set V=1
+;        php
         bra show_operand        ; repeat
 .endif
 _done:
@@ -355,7 +357,6 @@ prspc:
     ; print one space
         lda #' '
 putc:
-jmp_op:
         jmp kernel_putc         ; redirect to kernel routine
 
 ; ---------------------------------------------------------------------
