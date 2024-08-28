@@ -1,0 +1,2155 @@
+[
+  {
+    "opcode": "00",
+    "mnemonic": "BRK",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "7",
+    "flags": "---I--"
+  },
+  {
+    "opcode": "01",
+    "mnemonic": "ORA",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "02",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "03",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "04",
+    "mnemonic": "TSB",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "-Z----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "05",
+    "mnemonic": "ORA",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "06",
+    "mnemonic": "ASL",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "07",
+    "mnemonic": "RMB0",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "08",
+    "mnemonic": "PHP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "3",
+    "flags": "------"
+  },
+  {
+    "opcode": "09",
+    "mnemonic": "ORA",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "0a",
+    "mnemonic": "ASL",
+    "arg": "A",
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "0b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "0c",
+    "mnemonic": "TSB",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "-Z----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "0d",
+    "mnemonic": "ORA",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "0e",
+    "mnemonic": "ASL",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "0f",
+    "mnemonic": "BBR0",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "10",
+    "mnemonic": "BPL",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "11",
+    "mnemonic": "ORA",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "12",
+    "mnemonic": "ORA",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "13",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "14",
+    "mnemonic": "TRB",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "-Z----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "15",
+    "mnemonic": "ORA",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "16",
+    "mnemonic": "ASL",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "17",
+    "mnemonic": "RMB1",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "18",
+    "mnemonic": "CLC",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "--C---"
+  },
+  {
+    "opcode": "19",
+    "mnemonic": "ORA",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "1a",
+    "mnemonic": "INC",
+    "arg": "A",
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "1b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "1c",
+    "mnemonic": "TRB",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "-Z----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "1d",
+    "mnemonic": "ORA",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "1e",
+    "mnemonic": "ASL",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "7",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "1f",
+    "mnemonic": "BBR1",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "20",
+    "mnemonic": "JSR",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "------"
+  },
+  {
+    "opcode": "21",
+    "mnemonic": "AND",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "22",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "23",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "24",
+    "mnemonic": "BIT",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ---V"
+  },
+  {
+    "opcode": "25",
+    "mnemonic": "AND",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "26",
+    "mnemonic": "ROL",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "27",
+    "mnemonic": "RMB2",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "28",
+    "mnemonic": "PLP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "4",
+    "flags": "NZCIDV"
+  },
+  {
+    "opcode": "29",
+    "mnemonic": "AND",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "2a",
+    "mnemonic": "ROL",
+    "arg": "A",
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "2b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "2c",
+    "mnemonic": "BIT",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ---V"
+  },
+  {
+    "opcode": "2d",
+    "mnemonic": "AND",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "2e",
+    "mnemonic": "ROL",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "2f",
+    "mnemonic": "BBR2",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "30",
+    "mnemonic": "BMI",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "31",
+    "mnemonic": "AND",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "32",
+    "mnemonic": "AND",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "33",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "34",
+    "mnemonic": "BIT",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ---V",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "35",
+    "mnemonic": "AND",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "36",
+    "mnemonic": "ROL",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "37",
+    "mnemonic": "RMB3",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "38",
+    "mnemonic": "SEC",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "--C---"
+  },
+  {
+    "opcode": "39",
+    "mnemonic": "AND",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "3a",
+    "mnemonic": "DEC",
+    "arg": "A",
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "3b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "3c",
+    "mnemonic": "BIT",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ---V",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "3d",
+    "mnemonic": "AND",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "3e",
+    "mnemonic": "ROL",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "7",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "3f",
+    "mnemonic": "BBR3",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "40",
+    "mnemonic": "RTI",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "6",
+    "flags": "NZCIDV"
+  },
+  {
+    "opcode": "41",
+    "mnemonic": "EOR",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "42",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "43",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "44",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "45",
+    "mnemonic": "EOR",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "46",
+    "mnemonic": "LSR",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "47",
+    "mnemonic": "RMB4",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "48",
+    "mnemonic": "PHA",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "3",
+    "flags": "------"
+  },
+  {
+    "opcode": "49",
+    "mnemonic": "EOR",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "4a",
+    "mnemonic": "LSR",
+    "arg": "A",
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "4b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "4c",
+    "mnemonic": "JMP",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "3",
+    "flags": "------"
+  },
+  {
+    "opcode": "4d",
+    "mnemonic": "EOR",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "4e",
+    "mnemonic": "LSR",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "4f",
+    "mnemonic": "BBR4",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "50",
+    "mnemonic": "BVC",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "51",
+    "mnemonic": "EOR",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "52",
+    "mnemonic": "EOR",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "53",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "54",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "55",
+    "mnemonic": "EOR",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "56",
+    "mnemonic": "LSR",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "57",
+    "mnemonic": "RMB5",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "58",
+    "mnemonic": "CLI",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "---I--"
+  },
+  {
+    "opcode": "59",
+    "mnemonic": "EOR",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "5A",
+    "mnemonic": "PHY",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "3",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "5b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "5c",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 3,
+    "cycles": "8",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "5d",
+    "mnemonic": "EOR",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "5e",
+    "mnemonic": "LSR",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "7",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "5f",
+    "mnemonic": "BBR5",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "60",
+    "mnemonic": "RTS",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "6",
+    "flags": "------"
+  },
+  {
+    "opcode": "61",
+    "mnemonic": "ADC",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "62",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "63",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "64",
+    "mnemonic": "STZ",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "65",
+    "mnemonic": "ADC",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "66",
+    "mnemonic": "ROR",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "67",
+    "mnemonic": "RMB6",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "68",
+    "mnemonic": "PLA",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "69",
+    "mnemonic": "ADC",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "6a",
+    "mnemonic": "ROR",
+    "arg": "A",
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "6b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "6c",
+    "mnemonic": "JMP",
+    "arg": "(a16)",
+    "bytes": 3,
+    "cycles": "5",
+    "flags": "------"
+  },
+  {
+    "opcode": "6d",
+    "mnemonic": "ADC",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "6e",
+    "mnemonic": "ROR",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "6f",
+    "mnemonic": "BBR6",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "70",
+    "mnemonic": "BVS",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "71",
+    "mnemonic": "ADC",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "72",
+    "mnemonic": "ADC",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZC--V",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "73",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "74",
+    "mnemonic": "STZ",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "75",
+    "mnemonic": "ADC",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "76",
+    "mnemonic": "ROR",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "77",
+    "mnemonic": "RMB7",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "78",
+    "mnemonic": "SEI",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "---I--"
+  },
+  {
+    "opcode": "79",
+    "mnemonic": "ADC",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "7a",
+    "mnemonic": "PLY",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "4",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "7b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "7c",
+    "mnemonic": "JMP",
+    "arg": "(a16,X)",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "7d",
+    "mnemonic": "ADC",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "7e",
+    "mnemonic": "ROR",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "7",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "7f",
+    "mnemonic": "BBR7",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "80",
+    "mnemonic": "BRA",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "81",
+    "mnemonic": "STA",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "------"
+  },
+  {
+    "opcode": "82",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "83",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "84",
+    "mnemonic": "STY",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "------"
+  },
+  {
+    "opcode": "85",
+    "mnemonic": "STA",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "------"
+  },
+  {
+    "opcode": "86",
+    "mnemonic": "STX",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "------"
+  },
+  {
+    "opcode": "87",
+    "mnemonic": "SMB0",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "88",
+    "mnemonic": "DEY",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "89",
+    "mnemonic": "BIT",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "-Z----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "8a",
+    "mnemonic": "TXA",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "8b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "8c",
+    "mnemonic": "STY",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "------"
+  },
+  {
+    "opcode": "8d",
+    "mnemonic": "STA",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "------"
+  },
+  {
+    "opcode": "8e",
+    "mnemonic": "STX",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "------"
+  },
+  {
+    "opcode": "8f",
+    "mnemonic": "BBS0",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "90",
+    "mnemonic": "BCC",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "91",
+    "mnemonic": "STA",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "------"
+  },
+  {
+    "opcode": "92",
+    "mnemonic": "STA",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "93",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "94",
+    "mnemonic": "STY",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------"
+  },
+  {
+    "opcode": "95",
+    "mnemonic": "STA",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------"
+  },
+  {
+    "opcode": "96",
+    "mnemonic": "STX",
+    "arg": "a8,Y",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------"
+  },
+  {
+    "opcode": "97",
+    "mnemonic": "SMB1",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "98",
+    "mnemonic": "TYA",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "99",
+    "mnemonic": "STA",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "5",
+    "flags": "------"
+  },
+  {
+    "opcode": "9a",
+    "mnemonic": "TXS",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "------"
+  },
+  {
+    "opcode": "9b",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "9c",
+    "mnemonic": "STZ",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "9d",
+    "mnemonic": "STA",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "5",
+    "flags": "------"
+  },
+  {
+    "opcode": "9e",
+    "mnemonic": "STZ",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "9f",
+    "mnemonic": "BBS1",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "a0",
+    "mnemonic": "LDY",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a1",
+    "mnemonic": "LDA",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a2",
+    "mnemonic": "LDX",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a3",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "a4",
+    "mnemonic": "LDY",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a5",
+    "mnemonic": "LDA",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a6",
+    "mnemonic": "LDX",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a7",
+    "mnemonic": "SMB2",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "a8",
+    "mnemonic": "TAY",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "a9",
+    "mnemonic": "LDA",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "aa",
+    "mnemonic": "TAX",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "ab",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "ac",
+    "mnemonic": "LDY",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "ad",
+    "mnemonic": "LDA",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "ae",
+    "mnemonic": "LDX",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "af",
+    "mnemonic": "BBS2",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "b0",
+    "mnemonic": "BCS",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "b1",
+    "mnemonic": "LDA",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "b2",
+    "mnemonic": "LDA",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "b3",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "b4",
+    "mnemonic": "LDY",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "b5",
+    "mnemonic": "LDA",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "b6",
+    "mnemonic": "LDX",
+    "arg": "a8,Y",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "b7",
+    "mnemonic": "SMB3",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "b8",
+    "mnemonic": "CLV",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "-----V"
+  },
+  {
+    "opcode": "b9",
+    "mnemonic": "LDA",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "ba",
+    "mnemonic": "TSX",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "bb",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "bc",
+    "mnemonic": "LDY",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "bd",
+    "mnemonic": "LDA",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "be",
+    "mnemonic": "LDX",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "bf",
+    "mnemonic": "BBS3",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "c0",
+    "mnemonic": "CPY",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "c1",
+    "mnemonic": "CMP",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "c2",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "c3",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "c4",
+    "mnemonic": "CPY",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "c5",
+    "mnemonic": "CMP",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "c6",
+    "mnemonic": "DEC",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "c7",
+    "mnemonic": "SMB4",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "c8",
+    "mnemonic": "INY",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "c9",
+    "mnemonic": "CMP",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "ca",
+    "mnemonic": "DEX",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "cb",
+    "mnemonic": "WAI",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "3",
+    "flags": "------",
+    "variant": "W65C02"
+  },
+  {
+    "opcode": "cc",
+    "mnemonic": "CPY",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "cd",
+    "mnemonic": "CMP",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "ce",
+    "mnemonic": "DEC",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "cf",
+    "mnemonic": "BBS4",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "d0",
+    "mnemonic": "BNE",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "d1",
+    "mnemonic": "CMP",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "d2",
+    "mnemonic": "CMP",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZC---",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "d3",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "d4",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "d5",
+    "mnemonic": "CMP",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "d6",
+    "mnemonic": "DEC",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "d7",
+    "mnemonic": "SMB5",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "d8",
+    "mnemonic": "CLD",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "----D-"
+  },
+  {
+    "opcode": "d9",
+    "mnemonic": "CMP",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "da",
+    "mnemonic": "PHX",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "3",
+    "flags": "------",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "db",
+    "mnemonic": "STP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "3",
+    "flags": "------",
+    "variant": "W65C02"
+  },
+  {
+    "opcode": "dc",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "dd",
+    "mnemonic": "CMP",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "de",
+    "mnemonic": "DEC",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "7",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "df",
+    "mnemonic": "BBS5",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "e0",
+    "mnemonic": "CPX",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "e1",
+    "mnemonic": "SBC",
+    "arg": "(a8,X)",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "e2",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "e3",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "e4",
+    "mnemonic": "CPX",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "e5",
+    "mnemonic": "SBC",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "3",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "e6",
+    "mnemonic": "INC",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "e7",
+    "mnemonic": "SMB6",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "e8",
+    "mnemonic": "INX",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "e9",
+    "mnemonic": "SBC",
+    "arg": "#d8",
+    "bytes": 2,
+    "cycles": "2",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "ea",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "------"
+  },
+  {
+    "opcode": "eb",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "ec",
+    "mnemonic": "CPX",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZC---"
+  },
+  {
+    "opcode": "ed",
+    "mnemonic": "SBC",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "ee",
+    "mnemonic": "INC",
+    "arg": "a16",
+    "bytes": 3,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "ef",
+    "mnemonic": "BBS6",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "f0",
+    "mnemonic": "BEQ",
+    "arg": "r8",
+    "bytes": 2,
+    "cycles": "3+/2",
+    "flags": "------"
+  },
+  {
+    "opcode": "f1",
+    "mnemonic": "SBC",
+    "arg": "(a8),Y",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "f2",
+    "mnemonic": "SBC",
+    "arg": "(a8)",
+    "bytes": 2,
+    "cycles": "5+",
+    "flags": "NZC--V",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "f3",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "f4",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "f5",
+    "mnemonic": "SBC",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "4",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "f6",
+    "mnemonic": "INC",
+    "arg": "a8,X",
+    "bytes": 2,
+    "cycles": "6",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "f7",
+    "mnemonic": "SMB7",
+    "arg": "a8",
+    "bytes": 2,
+    "cycles": "5",
+    "flags": "------",
+    "variant": "R65C02"
+  },
+  {
+    "opcode": "f8",
+    "mnemonic": "SED",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "2",
+    "flags": "----D-"
+  },
+  {
+    "opcode": "f9",
+    "mnemonic": "SBC",
+    "arg": "a16,Y",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "fa",
+    "mnemonic": "PLX",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "4",
+    "flags": "NZ----",
+    "variant": "65C02"
+  },
+  {
+    "opcode": "fb",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 1,
+    "cycles": "1",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "fc",
+    "mnemonic": "NOP",
+    "arg": null,
+    "bytes": 3,
+    "cycles": "4",
+    "flags": "------",
+    "variant": "X"
+  },
+  {
+    "opcode": "fd",
+    "mnemonic": "SBC",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "4+",
+    "flags": "NZC--V"
+  },
+  {
+    "opcode": "fe",
+    "mnemonic": "INC",
+    "arg": "a16,X",
+    "bytes": 3,
+    "cycles": "7",
+    "flags": "NZ----"
+  },
+  {
+    "opcode": "ff",
+    "mnemonic": "BBS7",
+    "arg": "a8,r8",
+    "bytes": 3,
+    "cycles": "5+",
+    "flags": "------",
+    "variant": "R65C02"
+  }
+]

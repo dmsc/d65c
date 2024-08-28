@@ -1,10 +1,9 @@
 ; =====================================================================
-;
-; A tiny disassembler that decodes all 256 opcodes for 65c02
-; including an option for Rockwell/WDC bit operators
-;
 
 .comment
+
+A tiny disassembler that decodes all 256 opcodes for 65c02
+including an option for Rockwell/WDC bit operators.
 
 Requires a kernel_putc routine that outputs the character in A
 while preserving X and Y.  A c65/py65mon compatible routine
@@ -16,6 +15,15 @@ Compile like:
 
 Run like:
     c65 -gg -r dasm.bin -a 0x200 -l dasm.sym
+
+The test routines can be used to check expected output:
+
+    g 600       ; test_dasm_self: disassemble first $100 bytes of self
+    g 611       ; test_all: disassemble every opcode
+    g 632       ; test_mnemonic_table: generate a compact mnemonic table
+
+pivot.py generates the expected output from a data file of opcodes
+which should match the latter two excluding extra bytes for extended NOPs.
 
 .endcomment
 
@@ -61,13 +69,12 @@ dasm:
         lda (pc)
 
         ; check if opcode has special mode
-        ldx #n_normal_mode      ; use offset relative to mode_tbl
+        ldx #128-n_special_mode      ; use offset relative to mode_tbl
 -
-        cmp op_special_mode-n_normal_mode,x
+        cmp op_special_mode+n_special_mode-128,x
         beq _found_mode
         inx
-        cpx #n_normal_mode + n_special_mode
-        bne -
+        bpl -
 
         ; otherwise fetch mode from lookup table using bits ...bbbcc
         ; two mode nibbles are packed in each byte so first
@@ -162,11 +169,11 @@ find_mnemonic:
         ; -------------------------------------------------------------
         ; First check opcodes that don't follow a clear pattern
 
-        ldx #n_special-1        ; loop backward to save cpx
+        ldx #n_special_mnem-1   ; loop backward to save cpx
 -
-        cmp op_special,x
+        cmp op_special_mnem,x
         bne +
-        lda ix_special,x
+        lda ix_special_mnem,x
         bra _w2s
 +
         dex
@@ -516,42 +523,13 @@ mSTZ = 59
 
 ; index +64
 
-; aaabb111 (NOP repeated 32x) and 11a1b100 (NOP repeated 4x)
-    .word s3w("NOP")
-
-mNOP = 64
-
 .if INCLUDE_BITOPS
 
-mBITOPS = 65
+mBITOPS = 64
 ; bitops xaaby111 with op xy repeated 8x
     .word s3w("RMB",1), s3w("BBR",1), s3w("SMB",1), s3w("BBS",1)
 
 .endif
-
-; index +65 or +69
-mSpecial = (* - mnemonics) / 2
-
-; mnemonics only used as specials
-    .word s3w("TRB"), s3w("JMP"), s3w("TXA"), s3w("TAX"), s3w("WAI"), s3w("STP"), s3w("DEX")
-
-mTRB = mSpecial
-mJMP = mSpecial + 1
-mTXA = mSpecial + 2
-mTAX = mSpecial + 3
-mWAI = mSpecial + 4
-mSTP = mSpecial + 5
-mDEX = mSpecial + 6
-
-; ---------------------------------------------------------------------
-; lookup for opcodes that don't fit a simple pattern
-
-n_special = 15
-
-op_special:
-    .byte $14, $1c, $4c, $6c, $7c, $89, $8a, $9c, $9e, $a2, $aa, $cb, $db, $ca, $ea
-ix_special:
-    .byte mTRB,mTRB,mJMP,mJMP,mJMP,mBIT,mTXA,mSTZ,mSTZ,mLDX,mTAX,mWAI,mSTP,mDEX,mNOP
 
 ; ---------------------------------------------------------------------
 ; address mode decoding
@@ -586,32 +564,6 @@ mode_ZIY    = mnbl(2,6)     ; LDA ($42),Y
 mode_R      = mnbl(2,7)     ; BRA $1234
 
 ; we'll deal with mode_ZR, e.g. RMB $42,$1234, as an exception in code
-
-; ---------------------------------------------------------------------
-; address mode formatting
-
-; This string lists all the characters that can appear in a formatted operand
-; in reverse order of appearance
-
-s_mode_template:
-    .text "Y,)X,$(#"            ; reversed: #($,X),Y
-
-mode_fmt:
-
-; The format bytes index the template string which is stored backwards in s_mode_template
-; The operand payload (single byte, word or branch target) is always inserted after $
-;                 v-------- operand inserted
-; string mask "#($,X),Y"        ; 1 or 2 byte address or branch target always inserted after $
-        .byte %00100000	        ; 0: $@
-        .byte %10100000         ; 1: #$@
-        .byte %00111000	        ; 2: $@,x
-        .byte %00100011	        ; 3: $@,y
-        .byte %01100100	        ; 4: ($@)
-        .byte %01111100	        ; 5: ($@,x)
-        .byte %01100111	        ; 6: ($@),y
-format_R  =   %00100000
-        .byte format_R          ; 7: $@     (duplicate of 0 for mode_R)
-format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
 
 ; ---------------------------------------------------------------------
 ; lookup tables mapping opcode slices to address modes
@@ -650,18 +602,79 @@ so again there might be a more efficient representation.
 
 .endcomment
 
-n_normal_mode = 32
+; ---------------------------------------------------------------------
+; address mode formatting
+
+; This string lists all the characters that can appear in a formatted operand
+; in reverse order of appearance
+
+s_mode_template:
+    .text "Y,)X,$(#"            ; reversed: #($,X),Y
+
+mode_fmt:
+
+; The format bytes index the template string which is stored backwards in s_mode_template
+; The operand payload (single byte, word or branch target) is always inserted after $
+;                 v-------- operand inserted
+; string mask "#($,X),Y"        ; 1 or 2 byte address or branch target always inserted after $
+        .byte %00100000	        ; 0: $@
+        .byte %10100000         ; 1: #$@
+        .byte %00111000	        ; 2: $@,x
+        .byte %00100011	        ; 3: $@,y
+        .byte %01100100	        ; 4: ($@)
+        .byte %01111100	        ; 5: ($@,x)
+        .byte %01100111	        ; 6: ($@),y
+format_R  =   %00100000
+        .byte format_R          ; 7: $@     (duplicate of 0 for mode_R)
+format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
+
+; ---------------------------------------------------------------------
+; lookup for opcodes that don't fit a simple pattern
+
+n_special_mnem = 15
+
+op_special_mnem:
+    .byte  $4c, $89, $8a, $9e, $a2, $aa, $cb, $db, $ca, $ea, $6c, $14, $1c, $7c, $9c
+
 n_special_mode = 12
 
-mode_special:
-    .byte n2b(mode_W,   mode_NIL), n2b(mode_NIL, mode_R)
-    .byte n2b(mode_WI,  mode_ZP),  n2b(mode_ZY,  mode_ZY)
-    .byte n2b(mode_W,   mode_WXI), n2b(mode_W,   mode_WY)
-
-op_special_mode:
+op_special_mode = *-5
+;   Reuse last 5 bytes from table above
+;   .byte $6c, $14, $1c, $7c
+;   .byte $9c
+    .byte      $be, $96, $b6
     .byte $20, $40, $60, $80
-    .byte $6c, $14, $96, $b6
-    .byte $1c, $7c, $9c, $be
+
+; aaabb111 (NOP repeated 32x) and 11a1b100 (NOP repeated 4x)
+mNOP = (* - mnemonics) / 2
+    .word s3w("NOP")
+
+mDEX = (* - mnemonics) / 2
+    .word s3w("DEX")
+
+
+mode_special:
+    .byte n2b(mode_WI,  mode_ZP),  n2b(mode_W,   mode_WXI)
+    .byte n2b(mode_W,   mode_WY),  n2b(mode_ZY,  mode_ZY)
+    .byte n2b(mode_W,   mode_NIL), n2b(mode_NIL, mode_R)
+
+.cerror * - mode_tbl != $40, "mode_special must end just at +64 bytes from mode_tbl, not ",*-mode_tbl,".."
+
+; index +65 or +69
+mSpecial = (* - mnemonics) / 2
+
+; mnemonics only used as specials
+    .word s3w("TRB"), s3w("JMP"), s3w("TXA"), s3w("TAX"), s3w("WAI"), s3w("STP")
+
+mTRB = mSpecial
+mJMP = mSpecial + 1
+mTXA = mSpecial + 2
+mTAX = mSpecial + 3
+mWAI = mSpecial + 4
+mSTP = mSpecial + 5
+
+ix_special_mnem:
+    .byte mJMP,mBIT,mTXA,mSTZ,mLDX,mTAX,mWAI,mSTP,mDEX,mNOP,mJMP,mTRB,mTRB,mJMP,mSTZ
 
 ; ---------------------------------------------------------------------
 ; dasm ends

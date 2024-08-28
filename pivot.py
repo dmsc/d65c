@@ -1,6 +1,6 @@
 import json
 
-ops = json.load(open('../periodic-65c02/opcodes.json'))
+ops = json.load(open('opcodes.json'))
 """
     "opcode": "00",
     "mnemonic": "BRK",
@@ -69,3 +69,21 @@ for i in range(256):
     print(op['mnemonic'], end=' ')
 #        print(op['opcode'], end=' ')
 print()
+
+if False:
+    """Some hash testing for assembly"""
+
+    """
+        000aaaaa
+        bbb000bb
+        0ccccc00
+    """
+    def h3(s):
+        k = 0
+        for c in s:
+            k = ((k << 5) | (k >> 3)) ^ (ord(c) - 64)
+        return k
+
+    distinct = sorted({op['mnemonic'][:3] for op in ops})
+    ks = [h3(m) for m in distinct + ['INA', 'DEA']]
+    print(len(distinct), len(ks))
