@@ -202,24 +202,25 @@ find_mnemonic:
 
         ldx #mBITOPS
         lda opcode
-        bit #%1000              ; check bit 3 (y)
-        beq +
+        bpl +                   ; N=x set indicates the second pair
+        inx
+        inx
++
+        ; roll xaaby111 left to get C=y and lower nibble 0aab
+        asl                     ; A=aaby1110 C=x
+        asl                     ; A=aby11100 C=a
+        rol                     ; A=by11100a C=a
+        rol                     ; A=y11100aa C=b
+        rol                     ; A=11100aab C=y
+
+        pha                     ; stash bit index nibble for later
+
+        bcc +
         inx                     ; offset++
         ; update format to mode_ZR (it wasn't mode_R so stashed V flag is OK)
         ldy #format_ZR
         sty format
 +
-        asl                     ; check bit 7 (x), leaving A = aaby1110
-        bcc +
-        inx                     ; offset += 2
-        inx
-+
-        lsr                     ; roll top 3 bits from A down to index
-        lsr
-        lsr
-        lsr
-        lsr
-        pha                     ; stash bit index for later
         txa
         bra _w2s
 .endif
@@ -291,7 +292,7 @@ _rol5:
         bit tmp+1               ; tmp+1 is now %f0000000 where f flags
         bpl +                   ; a bit-indexed opcode e.g. BBS3
         pla
-        jsr prnbl               ; ... so show the digit
+        jsr prnblmsk            ; ... so show the digit
 +
 .endif
         jsr prspc
@@ -384,9 +385,7 @@ prrel:
         adc pc                  ; C already clear from #args check
         tay                     ; Y is LSB
         lda pc+1
-        bcc +
-        ina
-+
+        adc #0                  ; add carry
         plp
         bpl +
         dea
@@ -405,6 +404,7 @@ prbyte:
         LSR
         JSR     prnbl           ; Output hex digit.
         PLA                     ; Restore A.
+prnblmsk:
         AND     #$0F            ; Mask LSD for hex print.
 prnbl:
         ORA     #$30            ; Add "0".
