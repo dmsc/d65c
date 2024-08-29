@@ -307,7 +307,6 @@ show_operand:
 
 .if INCLUDE_BITOPS
         cmp #format_ZR
-        php                     ; save status for =? format_ZR
         bne +
 
         ; oplen is %11 but we want to consume only one arg
@@ -320,6 +319,7 @@ show_operand:
 -
         asl format
         bcc +                   ; display the corresponding character if bit is set
+_zr2:
         lda s_mode_template,x
         jsr putc
 +
@@ -335,17 +335,16 @@ show_operand:
         ; bitops like XZYn $zz, $rr are a pain..
         ; The first pass with mode ZR will emit "$zz,"
         ; since we decremented oplen above.
-        ; Then we'll run a second pass, switching to mode R
+        ; If we finished with ',' we'll repeat in mode R
         ; to emit the branch target "$hhll".
+        ; This assumes that putc preserves A.
 
-        plp
+        cmp #','                ; fell through after ',' (ZR) ?
         bne _done
 
-        lda #format_R           ; switch to mode R
-        sta format
-        bit jmp_op              ; set V=1
-        php
-        bra show_operand        ; repeat
+        sbc #$80                ; set V=1
+        ldx #5
+        bvs _zr2                ; repeat
 .endif
 _done:
 prnl:
@@ -355,7 +354,6 @@ prspc:
     ; print one space
         lda #' '
 putc:
-jmp_op:
         jmp kernel_putc         ; redirect to kernel routine
 
 ; ---------------------------------------------------------------------
@@ -624,9 +622,8 @@ mode_fmt:
         .byte %01100100	        ; 4: ($@)
         .byte %01111100	        ; 5: ($@,x)
         .byte %01100111	        ; 6: ($@),y
-format_R  =   %00100000
-        .byte format_R          ; 7: $@     (duplicate of 0 for mode_R)
-format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
+        .byte %00100000         ; 7: $@     (duplicate of 0 for mode_R)
+format_ZR =   %00110000         ;    $@,    (special case for 2nd arg)
 
 ; ---------------------------------------------------------------------
 ; lookup for opcodes that don't fit a simple pattern
