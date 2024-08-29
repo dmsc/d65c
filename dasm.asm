@@ -335,7 +335,7 @@ _zr2:
         ; bitops like XZYn $zz, $rr are a pain..
         ; The first pass with mode ZR will emit "$zz,"
         ; since we decremented oplen above.
-        ; If we finished on with ',' we'll repeat in mode R
+        ; If we finished with ',' we'll repeat in mode R
         ; to emit the branch target "$hhll".
         ; This assumes that putc preserves A.
 
