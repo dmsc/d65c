@@ -4,7 +4,7 @@ including an option for Rockwell/WDC bit operators.
 The minimal version compiles to 500 bytes (all code and tables) but shows
 the extended bit operators RMBn, SMBn, BBRn, and BBSn as NOP with
 appropriate length and addressing mode.  Enabling support for RMBn and friends
-adds 64 bytes for a total of 564 bytes.
+adds 60 bytes for a total of 560 bytes.
 
 Background and further reading:
 
