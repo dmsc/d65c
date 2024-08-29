@@ -303,11 +303,10 @@ _rol5:
 show_operand:
         plp                     ; recover V flag indicating relative address mode
         lda format
-        beq _done               ; immediate mode?
+        beq a_done               ; immediate mode?
 
 .if INCLUDE_BITOPS
         cmp #format_ZR
-        php                     ; save status for =? format_ZR
         bne +
 
         ; oplen is %11 but we want to consume only one arg
@@ -320,6 +319,7 @@ show_operand:
 -
         asl format
         bcc +                   ; display the corresponding character if bit is set
+loop_bitops:
         lda s_mode_template,x
         jsr putc
 +
@@ -338,18 +338,14 @@ show_operand:
         ; Then we'll run a second pass, switching to mode R
         ; to emit the branch target "$hhll".
 
-        plp
-        bne _done
+        cmp #','
+        bne a_done
 
-        lda #format_R           ; switch to mode R
-        sta format
-        asl
-        pha
-;        sbc #$80                ; set V=1
-;        php
-        bra show_operand        ; repeat
+        sbc #$80                ; set V=1
+        ldx #5
+        bvs loop_bitops         ; repeat
 .endif
-_done:
+a_done:
 prnl:
         lda #$0a                ; add a newline and return via putc
         .byte $2C               ; bit llhh instead of bra putc
