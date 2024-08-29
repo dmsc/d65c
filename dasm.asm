@@ -303,7 +303,7 @@ _rol5:
 show_operand:
         plp                     ; recover V flag indicating relative address mode
         lda format
-        beq a_done               ; immediate mode?
+        beq _done               ; immediate mode?
 
 .if INCLUDE_BITOPS
         cmp #format_ZR
@@ -319,7 +319,7 @@ show_operand:
 -
         asl format
         bcc +                   ; display the corresponding character if bit is set
-loop_bitops:
+_zr2:
         lda s_mode_template,x
         jsr putc
 +
@@ -335,17 +335,18 @@ loop_bitops:
         ; bitops like XZYn $zz, $rr are a pain..
         ; The first pass with mode ZR will emit "$zz,"
         ; since we decremented oplen above.
-        ; Then we'll run a second pass, switching to mode R
+        ; If we finished on with ',' we'll repeat in mode R
         ; to emit the branch target "$hhll".
+        ; This assumes that putc preserves A.
 
-        cmp #','
-        bne a_done
+        cmp #','                ; fell through after ',' (ZR) ?
+        bne _done
 
         sbc #$80                ; set V=1
         ldx #5
-        bvs loop_bitops         ; repeat
+        bvs _zr2                ; repeat
 .endif
-a_done:
+_done:
 prnl:
         lda #$0a                ; add a newline and return via putc
         .byte $2C               ; bit llhh instead of bra putc
@@ -621,9 +622,8 @@ mode_fmt:
         .byte %01100100	        ; 4: ($@)
         .byte %01111100	        ; 5: ($@,x)
         .byte %01100111	        ; 6: ($@),y
-format_R  =   %00100000
-        .byte format_R          ; 7: $@     (duplicate of 0 for mode_R)
-format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
+        .byte %00100000         ; 7: $@     (duplicate of 0 for mode_R)
+format_ZR =   %00110000         ;    $@,    (special case for 2nd arg)
 
 ; ---------------------------------------------------------------------
 ; lookup for opcodes that don't fit a simple pattern
