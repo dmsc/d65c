@@ -216,8 +216,9 @@ find_mnemonic:
         pha                     ; stash bit index nibble for later
 
         bcc +
-        inx                     ; offset++
-        ; update format to mode_ZR (it wasn't mode_R so stashed V flag is OK)
+        inx                     ; it's BBR/BBS
+        ; update format to mode_ZR.  Nb. the original mode
+        ; wasn't mode_R so stashed V flag is still OK
         ldy #format_ZR
         sty format
 +
@@ -290,9 +291,9 @@ _rol5:
 
 .if INCLUDE_BITOPS
         bit tmp+1               ; tmp+1 is now %f0000000 where f flags
-        bpl +                   ; a bit-indexed opcode e.g. BBS3
+        bpl +                   ; is it a bit-indexed opcode e.g. BBS3?
         pla
-        jsr prnblmsk            ; ... so show the digit
+        jsr prnblmsk            ; show the nibble we stashed (masking high bits)
 +
 .endif
         jsr prspc
@@ -307,7 +308,7 @@ show_operand:
 
 .if INCLUDE_BITOPS
         cmp #format_ZR
-        php                     ; save status for =? format_ZR
+        php                     ; remember test result for later
         bne +
 
         ; oplen is %11 but we want to consume only one arg
@@ -332,18 +333,17 @@ show_operand:
 
 .if INCLUDE_BITOPS
         ; -------------------------------------------------------------
-        ; bitops like XZYn $zz, $rr are a pain..
+        ; bitops like XZYn $zz, $rr are a pain...
         ; The first pass with mode ZR will emit "$zz,"
         ; since we decremented oplen above.
         ; Then we'll run a second pass, switching to mode R
         ; to emit the branch target "$hhll".
 
-        plp
+        plp                     ; were we in mode ZR?
         bne _done
-
-        lda #format_R           ; switch to mode R
+        lda #format_R           ; set format (now cleared) to mode R
         sta format
-        bit jmp_op              ; set V=1
+        bit jmp_op              ; stash V=1 to indicate mode R
         php
         bra show_operand        ; repeat
 .endif
@@ -371,7 +371,7 @@ prarg:
         ldy args                ; fetch first operand
         bcs prword              ; two operands, print <A Y>
 .if INCLUDE_BITOPS
-        sta args                ; speculatively shuffle 2nd operand for mode_ZR
+        sta args                ; speculatively shuffle up 2nd operand for mode_ZR
 .endif
         tya
         bvc prbyte              ; one operand, not mode_R
@@ -626,7 +626,7 @@ mode_fmt:
         .byte %01100111	        ; 6: ($@),y
 format_R  =   %00100000
         .byte format_R          ; 7: $@     (duplicate of 0 for mode_R)
-format_ZR =   %00110000         ;    $@,    (then repeat with format_R)
+format_ZR =   %00110000         ;    $@,    (first operand, then repeats as format_R)
 
 ; ---------------------------------------------------------------------
 ; lookup for opcodes that don't fit a simple pattern
