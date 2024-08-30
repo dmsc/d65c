@@ -68,8 +68,15 @@ dasm:
 
         lda (pc)
 
-        ; check if opcode has special mode
-        ldx #128-n_special_mode      ; use offset relative to mode_tbl
+        ; mode_tbl has two disjoint parts: it starts with 32 entries in 16 bytes
+        ; for normal modes indexed by the lower 5 bits of the opcode.
+        ; Then we have several special modes which we index as 116..127
+        ; and so map to six bytes stored at mode_tbl + 58..63.
+        ; The intervening bytes are used for other purposes.
+        ; This lets us use the same indexing code to retrieve the mode value
+        ; and a more compact loop to check for them.
+
+        ldx #128-n_special_mode      ; offset relative to mode_tbl
 -
         cmp op_special_mode+n_special_mode-128,x
         beq _found_mode
@@ -578,6 +585,10 @@ I haven't found an efficient way to encode that.
 .endcomment
 
 mode_tbl:
+        ; *note* mode_tbl has two disjoint sections at mode_tbl+0..31 and mode_tbl+58..63
+        ; see discussion above as to why/how that works...
+        ; the intervening bytes are used for other purposes
+        ; we use an assembly-time assertion to ensure this spacing is maintained
 
 ; with rows b=0..7 and columns c=0..3 packing two modes per byte
     .byte n2b(mode_IMM, mode_ZXI),  n2b(mode_IMM, mode_NIL)
@@ -650,6 +661,7 @@ mNOP = (* - mnemonics) / 2
 mDEX = (* - mnemonics) / 2
     .word s3w("DEX")
 
+; *note* mode_special forms the end of mode_tbl, ending 64 bytes afterward
 
 mode_special:
     .byte n2b(mode_WI,  mode_ZP),  n2b(mode_W,   mode_WXI)
@@ -658,7 +670,7 @@ mode_special:
 
 .cerror * - mode_tbl != $40, "mode_special must end just at +64 bytes from mode_tbl, not ",*-mode_tbl,".."
 
-; index +65 or +69
+; indexed disjointly from earlier mnemonics
 mSpecial = (* - mnemonics) / 2
 
 ; mnemonics only used as specials
