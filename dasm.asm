@@ -449,7 +449,7 @@ different data structures overlap to save space.  Here's a rough sketch:
 
 +-------------------+-----------------------+---------------------+
 |  mode tbl 0..$20  |      (other data)     |  spc modes $7f-$7f  |
-|   32 bytes        |        42 bytes       |      6 bytes        |
+|   16 bytes        |        42 bytes       |      6 bytes        |
 +-------------------+-----------------------+---------------------+
                    /                         \
                 /    8 + 12 + 15 + 15           \
