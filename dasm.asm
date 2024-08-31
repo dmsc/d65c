@@ -158,7 +158,7 @@ _spcs:
         bmi _3spcs              ; right justify
 
         lda (pc)                ; fetch next byte
-        sta opcode+4,x          ; save to opcode, args
+        sta opcode+4,x          ; save to opcode, args (nb. only sta .,x has zp mode)
         inc pc                  ; advance pc
         bne +
         inc pc+1
