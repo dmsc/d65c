@@ -138,31 +138,33 @@ _found_mode:
         ; 1234   11          XYZ ...
         ; 1234   22 00       UVW ...
         ; 1234   33 00 00    RST ...
+        ;
+        ; We decrease oplen an even number of times, so the parity
+        ; remains the same for the argument printing code.
 
-        ldy #$ff                ; count fields -1, 0, 1, 2, 3
+        ldx #$fb                ; count fields -5, -4, -3, -2, -1
 
 _3spcs:
-        ldx #2                  ; print three spaces (X=2,1,0)
+        ldy #2                  ; print three spaces (Y=2,1,0)
 _spcs:
         jsr prspc               ; print a space
-        dex
+        dey
         bpl _spcs
 
-        iny                     ; next 3 char field
-        cpy #4                  ; done?
-        beq find_mnemonic
+        inx                     ; next 3 char field
+        beq find_mnemonic       ; done?
 
-        cpy oplen               ; finished operands?
-        bpl _3spcs              ; right justify
+        dec oplen               ; finished operands?
+        bmi _3spcs              ; right justify
 
         lda (pc)                ; fetch next byte
-        sta opcode,y            ; save to opcode, args
+        sta opcode+4,x          ; save to opcode, args
         inc pc                  ; advance pc
         bne +
         inc pc+1
 +
         jsr prbyte              ; show it
-        bra _spcs               ; X is already <= 0 so _spcs will emit one space
+        bra _spcs               ; Y is already <= 0 so _spcs will emit one space
 
 
         ; -------------------------------------------------------------
@@ -190,15 +192,18 @@ find_mnemonic:
         ; Then try matching one of several bitmasked slice
         ; Excluding bitops, these patterns cover all opcodes
         ; so we can skip the final check and just fall through
-        ldx #0
+        ldx #n_slice-1
 -
         lda slice_mask,x
         and opcode
         cmp slice_match,x
         beq _found_slice
-        inx
-        cpx #n_slice
+        dex
+.if INCLUDE_BITOPS
+        bpl -
+.else
         bne -
+.endif
 
 .if INCLUDE_BITOPS
         ; -------------------------------------------------------------
@@ -239,11 +244,11 @@ _found_slice:
 
         lda opcode              ; aaabbbcc
         stx tmp                 ; X is 0, 1,2,3, 4,5,6,7,8
-        cpx #1                  ; check for X=0 with carry bit
-        bcc _x0                 ; For X=0 we want index aaabb and leave C=0
+        cpx #n_slice-1          ; check for X=0 with carry bit
+        bcs _x0                 ; For X=0 we want index aaabb and leave C=1
 
-        cpx #4                  ; X < 4 ?
-        bmi _nop
+        cpx #n_slice-4          ; X < 4 ?
+        bpl _nop
 
         ; the remaining five slices map to four groups of 8 opcodes
         ; with an index like 001vwaaa where vw are the two LSB of X
@@ -252,8 +257,8 @@ _found_slice:
         ror                     ; waaabbbc
         lsr tmp                 ; C=v
         ror                     ; vwaaabbb
-        sec                     ; C=1
-_x0:                            ; note C=0 if we entered via X=0
+        clc                     ; C=0
+_x0:                            ; note C=1 if we entered via X=0
         ror                     ; 0aaabbbc or 1vwaaabb
         lsr                     ; 00aaabbb or 01vwaaab
         lsr                     ; 000aaabb or 001vwaaa
@@ -524,29 +529,26 @@ i.e. xaaby111 where xy select the opcode and aab give the bit index.
 
 ; ---------------------------------------------------------------------
 ; opcode mnemonic slices
+n_slice = 9
 
 .if INCLUDE_BITOPS
 
-n_slice = 9
-
 slice_mask:
-    .byte %111, %11111, %111, %11010111, %11111, %11111, %11, %111, %11
+    .byte %11, %111, %11, %11111, %11111, %11010111, %111, %11111, %111
 slice_match:
-    .byte %000, %00010, %011, %11010100, %10010, %11010, %10, %100, %01
+    .byte %01, %100, %10, %11010, %10010, %11010100, %011, %00010, %000
 
 .else
 
 ; things are slightly simpler if we're ignoring bitops
 
-n_slice = 8
-
-; we skip final check and just fall through without bitops ---------+
-; one mask differs -------+                                         |
-;                         |                                         |
-slice_mask:  ;            v                                         v
-    .byte %111, %11111,  %11, %11010111, %11111, %11111, %11, %111
-slice_match:
-    .byte %000, %00010,  %11, %11010100, %10010, %11010, %10, %100
+; we skip final check and just fall through without bitops
+; one mask differs ---------------------------=-+
+;                                               |
+slice_mask = *-1 ;                              v
+    .byte %111, %11, %11111, %11111, %11010111, %11, %11111, %111
+slice_match = *-1
+    .byte %100, %10, %11010, %10010, %11010100, %11, %00010, %000
 
 .endif
 
@@ -555,6 +557,17 @@ slice_match:
 ; each mnemonic is a byte pair which we index as individual words
 
 mnemonics:
+
+; aaa10010 and aaabbb01 indexed by aaa (each repeated 9x)
+    .word s3w("ORA"), s3w("AND"), s3w("EOR"), s3w("ADC"), s3w("STA"), s3w("LDA"), s3w("CMP"), s3w("SBC")
+; aaabb100 indexed by aaa (each repeated 8x)
+    .word s3w("TSB"), s3w("BIT"), s3w("NOP"), s3w("STZ"), s3w("STY"), s3w("LDY"), s3w("CPY"), s3w("CPX")
+; aaabbb10 indexed by aaa (each repeated 8x)
+    .word s3w("ASL"), s3w("ROL"), s3w("LSR"), s3w("ROR"), s3w("STX"), s3w("LDX"), s3w("DEC"), s3w("INC")
+; aaa11010 indexed by aaa (each repeated 1x)
+    .word s3w("INC"), s3w("DEC"), s3w("PHY"), s3w("PLY"), s3w("TXS"), s3w("TSX"), s3w("PHX"), s3w("PLX")
+
+; index +32
 
 ; aaabb000 indexed by aaabb
     .word s3w("BRK"), s3w("PHP"), s3w("BPL"), s3w("CLC")
@@ -566,22 +579,11 @@ mnemonics:
     .word s3w("CPY"), s3w("INY"), s3w("BNE"), s3w("CLD")
     .word s3w("CPX"), s3w("INX"), s3w("BEQ"), s3w("SED")
 
-; index +32
-
-; aaa10010 and aaabbb01 indexed by aaa (each repeated 9x)
-    .word s3w("ORA"), s3w("AND"), s3w("EOR"), s3w("ADC"), s3w("STA"), s3w("LDA"), s3w("CMP"), s3w("SBC")
-; aaa11010 indexed by aaa (each repeated 1x)
-    .word s3w("INC"), s3w("DEC"), s3w("PHY"), s3w("PLY"), s3w("TXS"), s3w("TSX"), s3w("PHX"), s3w("PLX")
-; aaabbb10 indexed by aaa (each repeated 8x)
-    .word s3w("ASL"), s3w("ROL"), s3w("LSR"), s3w("ROR"), s3w("STX"), s3w("LDX"), s3w("DEC"), s3w("INC")
-; aaabb100 indexed by aaa (each repeated 8x)
-    .word s3w("TSB"), s3w("BIT"), s3w("NOP"), s3w("STZ"), s3w("STY"), s3w("LDY"), s3w("CPY"), s3w("CPX")
-
 ; a few of these mnemonics are reused for specials, so note their positions in the slices
 
-mLDX = 53
-mBIT = 57
-mSTZ = 59
+mLDX = 21
+mBIT = 9
+mSTZ = 11
 
 ; Now we skip four offsets so we can play some data tetris below,
 ; specifcally we need two mnemonics with indices $4a and $4b...
