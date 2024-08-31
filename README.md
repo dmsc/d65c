@@ -1,10 +1,10 @@
 This is smallish disassembler that decodes all 256 opcodes for 65c02
 including an option for Rockwell/WDC bit operators.
 
-The minimal version compiles to 500 bytes (all code and tables) but shows
+The minimal version compiles to 497 bytes (all code and tables) but shows
 the extended bit operators RMBn, SMBn, BBRn, and BBSn as NOP with
 appropriate length and addressing mode.  Enabling support for RMBn and friends
-adds 60 bytes for a total of 560 bytes.
+adds 60 bytes for a total of 557 bytes.
 
 Background and further reading:
 

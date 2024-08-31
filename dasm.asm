@@ -72,9 +72,9 @@ dasm:
         ; for normal modes indexed by the lower 5 bits of the opcode.
         ; Then we have several special modes which we index as 116..127
         ; and so map to six bytes stored at mode_tbl + 58..63.
-        ; The intervening bytes are used for other purposes.
-        ; This lets us use the same indexing code to retrieve the mode value
-        ; and a more compact loop to check for them.
+        ; The intervening 42 (of course!) bytes are used for other purposes.
+        ; This lets us use a compact loop with shared indexing code
+        ; to find the mode value.
 
         ldx #128-n_special_mode      ; offset relative to mode_tbl
 -
@@ -83,7 +83,7 @@ dasm:
         inx
         bpl -
 
-        ; otherwise fetch mode from lookup table using bits ...bbbcc
+        ; otherwise lookup mode from the table using bits ...bbbcc
         ; two mode nibbles are packed in each byte so first
         ; determine which byte and then which half
         and #$1f
@@ -420,13 +420,56 @@ prnbl:
         BRA     putc
 
 ; =====================================================================
-;
-; We use several data tables to drive the disassembly
-; First we have tables map opcodes to mnemonics,
-; then mnemonic tables which pack three letter labels into two byte words,
-; then tables to decode the addressing mode,
-; and finally tables to format the operands for each address mode.
-;
+
+.comment
+
+We use several data tables to drive the disassembly.
+First we have a table that maps opcode bytes to mnemonics,
+then mnemonic tables which pack three letter labels into two byte words,
+folowed by tables to decode the addressing mode,
+along with tables to format the operands for each address mode.
+
+The data layout is quite intricate to create some areas where
+different data structures overlap to save space.  Here's a rough sketch:
+
++------------------+
+|   slice masks    |
+|   16-18 bytes    |
++------------------+
+
++------------------+-----------------+----------------------------+
+| mnemonics 0..$40 |   (other data)  | spc mnemonics $44..$4c/$50 |
+|     64 bytes     |     8 bytes     |        16 - 24 bytes       |
++------------------+-----------------+----------------------------+
+                  /                   \
+                 +---------------------+
+                 |  operand template   |
+                 |   8 byte string     |
+                 +---------------------+
+
++-------------------+-----------------------+---------------------+
+|  mode tbl 0..$20  |      (other data)     |  spc modes $7f-$7f  |
+|   32 bytes        |        42 bytes       |      6 bytes        |
++-------------------+-----------------------+---------------------+
+                   /                         \
+                /    8 + 12 + 15 + 15           \
+             /              - 1 - 5 - 2            \
+          /                     = 42 bytes            \
+        +---------+                                     |
+        | formats |  1 byte overlap                     |
+        | 8 bytes | /                                   |
+        +-------+-+-------------+                       |
+                | spc mode opcs |  5 byte overlap       |
+                |   12 bytes    | /                     |
+                +---------+-----+---------+             |
+                          | spc mnem opcs |  2 byte overlap
+                          |   15 bytes    | /           |
+                          +-----------+---+-------------+
+                                      |  spc mnem idxs  |
+                                      |     15 bytes    |
+                                      +-----------------+
+
+.endcomment
 
 ; -------------------------------------------------------------
 ; helper macros
@@ -434,8 +477,15 @@ prnbl:
 ; encode "ABC" as %aaa aabbb  bbc ccccf
 s3w .sfunction s, f=0, (((s[0] & $1f)<<11) | ((s[1] & $1f)<<6) | ((s[2] & $1f)<<1) | f )
 
-; encode two nibbles into one byte
+; encode two nibbles into one byte, with the low nibble indexed first (0), the hi second (1)
 n2b .sfunction lo, hi, ((hi<<4) | lo)
+
+; pack opcode length and operand format in four bits
+; unpack by decrementing and extract the length bit and format
+mnbl .sfunction n, fmt, ( (n%2) + (fmt << 1) + 1 )
+
+; -------------------------------------------------------------
+; Mapping bitwise slices of opcodes to mnemonics
 
 .comment
 
@@ -476,6 +526,7 @@ i.e. xaaby111 where xy select the opcode and aab give the bit index.
 ; opcode mnemonic slices
 
 .if INCLUDE_BITOPS
+
 n_slice = 9
 
 slice_mask:
@@ -484,7 +535,11 @@ slice_match:
     .byte %000, %00010, %011, %11010100, %10010, %11010, %10, %100, %01
 
 .else
+
+; things are slightly simpler if we're ignoring bitops
+
 n_slice = 8
+
 ; we skip final check and just fall through without bitops ---------+
 ; one mask differs -------+                                         |
 ;                         |                                         |
@@ -497,6 +552,7 @@ slice_match:
 
 ; ---------------------------------------------------------------------
 ; packed mnemonic labels
+; each mnemonic is a byte pair which we index as individual words
 
 mnemonics:
 
@@ -521,17 +577,48 @@ mnemonics:
 ; aaabb100 indexed by aaa (each repeated 8x)
     .word s3w("TSB"), s3w("BIT"), s3w("NOP"), s3w("STZ"), s3w("STY"), s3w("LDY"), s3w("CPY"), s3w("CPX")
 
-; these indices are reused for specials, so depend on the ordering of slices above
+; a few of these mnemonics are reused for specials, so note their positions in the slices
 
 mLDX = 53
 mBIT = 57
 mSTZ = 59
 
-; index +64
+; Now we skip four offsets so we can play some data tetris below,
+; specifcally we need two mnemonics with indices $4a and $4b...
+
+; This template string is used to format the operands. It lists
+; all the characters that could appear, in reverse order of appearance.
+; The bitops mode $zp, $r is a special case that uses the template twice.
+
+s_mode_template:
+    .text "Y,)X,$(#"            ; this is "#($,X),Y" reversed
+
+; We now return to our regularly scheduled programming...
+; Enumerate the rest of the mnemonics that appear as special cases
+
+mSpecial = 68                   ; index +68
+
+; mnemonics only used as specials
+    .word s3w("NOP")            ; aaabb111 (NOP repeated 32x) and 11a1b100 (NOP repeated 4x)
+    .word s3w("WAI"), s3w("STP"), s3w("DEX"), s3w("TXA"), s3w("TAX"), s3w("JMP"), s3w("TRB")
+
+mNOP = mSpecial
+mWAI = mSpecial + 1
+mSTP = mSpecial + 2
+mDEX = mSpecial + 3
+mTXA = mSpecial + 4
+mTAX = mSpecial + 5
+mJMP = mSpecial + 6
+mTRB = mSpecial + 7
+
+; Part of our data tetris relies on specific index values to overlap with opcodes
+
+.cerror mJMP != $ca & $7f, "mJMP must be $4a"
+.cerror mTRB != $cb & $7f, "mTRB must be $4b"
 
 .if INCLUDE_BITOPS
 
-mBITOPS = 64
+mBITOPS = mSpecial + 8
 ; bitops xaaby111 with op xy repeated 8x
     .word s3w("RMB",1), s3w("BBR",1), s3w("SMB",1), s3w("BBS",1)
 
@@ -547,10 +634,6 @@ we use a four bit index where the lsb indicates a length of 2 or 3 (m_IMPL is a 
 and the other three bits index an operand formatting pattern
 
 .endcomment
-
-; helper macro to pack opcode length and operand format in four bits
-; we'll unpack by decrementing and then recover the length bit and format
-mnbl .sfunction n, fmt, ( (n%2) + (fmt << 1) + 1 )
 
 mode_NIL    = 0	            ; (*) INC, RTS (note we don't emit INC A)
 mode_ZP     = mnbl(2,0)     ; LDA $42
@@ -587,7 +670,7 @@ I haven't found an efficient way to encode that.
 mode_tbl:
         ; *note* mode_tbl has two disjoint sections at mode_tbl+0..31 and mode_tbl+58..63
         ; see discussion above as to why/how that works...
-        ; the intervening bytes are used for other purposes
+        ; the intervening 42 bytes are used for other data
         ; we use an assembly-time assertion to ensure this spacing is maintained
 
 ; with rows b=0..7 and columns c=0..3 packing two modes per byte
@@ -598,32 +681,16 @@ mode_tbl:
     .byte n2b(mode_R,   mode_ZIY),  n2b(mode_ZI,  mode_NIL)
     .byte n2b(mode_ZX,  mode_ZX),   n2b(mode_ZX,  mode_ZP)
     .byte n2b(mode_NIL, mode_WY),   n2b(mode_NIL, mode_NIL)
-    .byte n2b(mode_WX,  mode_WX),   n2b(mode_WX,   mode_WX)     ; <= last becomes ZR for BITOPS
+    .byte n2b(mode_WX,  mode_WX),   n2b(mode_WX,  mode_WX)      ; <= last becomes ZR for BITOPS
 
-; ---------------------------------------------------------------------
-; address mode lookup for opcode that don't fit the pattern
-
-.comment
-
-Three of these just switch X=>Y for mnemonics ending with X,
-which we could possibly use to our advantage.
-The other nine all occur for c=0, a<=4 (5*8 = 40 possible locations)
-so again there might be a more efficient representation.
-
-.endcomment
+; now we have 42 bytes available before the tail of mode_tbl
 
 ; ---------------------------------------------------------------------
 ; address mode formatting
-
-; This string lists all the characters that can appear in a formatted operand
-; in reverse order of appearance
-
-s_mode_template:
-    .text "Y,)X,$(#"            ; reversed: #($,X),Y
+; Each format byte masks the template string in s_mode_template
 
 mode_fmt:
 
-; The format bytes index the template string which is stored backwards in s_mode_template
 ; The operand payload (single byte, word or branch target) is always inserted after $
 ;                 v-------- operand inserted
 ; string mask "#($,X),Y"        ; 1 or 2 byte address or branch target always inserted after $
@@ -634,57 +701,52 @@ mode_fmt:
         .byte %01100100	        ; 4: ($@)
         .byte %01111100	        ; 5: ($@,x)
         .byte %01100111	        ; 6: ($@),y
-        .byte %00100000         ; 7: $@     (duplicate of 0 for mode_R)
+; the last format mask is $20 which we overlap with the first special mode
+;        .byte %00100000         ; 7: $@     (duplicate of 0 for mode_R)
 format_ZR =   %00110000         ;    $@,    (special case for 2nd arg)
 
-; ---------------------------------------------------------------------
-; lookup for opcodes that don't fit a simple pattern
-
+n_special_mode = 12
 n_special_mnem = 15
 
+op_special_mode:
+        ; the first opcode, $20, is also the last byte in the format table
+        ;    W, NIL, NIL,   R,  ZY,  ZY,  WY
+    .byte  $20, $40, $60, $80, $96, $b6, $be    ; 7 + 5 shared opcodes
 op_special_mnem:
-    .byte  $4c, $89, $8a, $9e, $a2, $aa, $cb, $db, $ca, $ea, $6c, $14, $1c, $7c, $9c
-
-n_special_mode = 12
-
-op_special_mode = *-5
-;   Reuse last 5 bytes from table above
-;   .byte $6c, $14, $1c, $7c
-;   .byte $9c
-    .byte      $be, $96, $b6
-    .byte $20, $40, $60, $80
-
-; aaabb111 (NOP repeated 32x) and 11a1b100 (NOP repeated 4x)
-mNOP = (* - mnemonics) / 2
-    .word s3w("NOP")
-
-mDEX = (* - mnemonics) / 2
-    .word s3w("DEX")
-
-; *note* mode_special forms the end of mode_tbl, ending 64 bytes afterward
-
-mode_special:
-    .byte n2b(mode_WI,  mode_ZP),  n2b(mode_W,   mode_WXI)
-    .byte n2b(mode_W,   mode_WY),  n2b(mode_ZY,  mode_ZY)
-    .byte n2b(mode_W,   mode_NIL), n2b(mode_NIL, mode_R)
-
-.cerror * - mode_tbl != $40, "mode_special must end just at +64 bytes from mode_tbl, not ",*-mode_tbl,".."
-
-; indexed disjointly from earlier mnemonics
-mSpecial = (* - mnemonics) / 2
-
-; mnemonics only used as specials
-    .word s3w("TRB"), s3w("JMP"), s3w("TXA"), s3w("TAX"), s3w("WAI"), s3w("STP")
-
-mTRB = mSpecial
-mJMP = mSpecial + 1
-mTXA = mSpecial + 2
-mTAX = mSpecial + 3
-mWAI = mSpecial + 4
-mSTP = mSpecial + 5
-
+        ;  WI,   Z, WXI,   W,   W
+    .byte $6c, $14, $7c, $1c, $9c               ; 5 opcodes are in both lists
+    .byte $4c, $89, $8a, $9e, $a2, $aa, $db, $ea
 ix_special_mnem:
-    .byte mJMP,mBIT,mTXA,mSTZ,mLDX,mTAX,mWAI,mSTP,mDEX,mNOP,mJMP,mTRB,mTRB,mJMP,mSTZ
+    ; 15 indices to the mnemonic table corresponding to op_special_mnem
+    ; the last two opcodes $ca and $ca do double duty as indices
+    ; because we'll double the index, the msb is irrelevant
+    ; so that $ca is equivalent to $4a (mJMP) and $cb to $4b (mTRB)
+    .byte $ca, $cb
+;    .byte mJMP,mTRB            ; ignoring msb, these are equivalent
+    .byte             mJMP,mTRB,mSTZ
+    .byte mJMP,mBIT,mTXA,mSTZ,mLDX,mTAX,mSTP,mNOP,mDEX,mWAI
+
+; ---------------------------------------------------------------------
+; address mode lookup for opcodes that don't fit the pattern
+; this forms the end of mode_tbl
+
+.comment
+
+These correspond to the list in op_special_mode
+
+Three of these just switch X=>Y for mnemonics ending with X,
+which we could possibly use to our advantage.
+The other nine all occur for c=0, a<=4 (5*8 = 40 possible locations)
+so again there might be a more efficient representation.
+
+.endcomment
+
+mode_special:                   ; *note* this is the tail of mode_tbl
+    .byte n2b(mode_W,   mode_NIL),  n2b(mode_NIL, mode_R)
+    .byte n2b(mode_ZY,  mode_ZY),   n2b(mode_WY,  mode_WI)
+    .byte n2b(mode_ZP,  mode_WXI),  n2b(mode_W,   mode_W)
+
+.cerror * - mode_tbl != $40, "mode_special must end at mode_tbl+64 but got +",*-mode_tbl
 
 ; ---------------------------------------------------------------------
 ; dasm ends
