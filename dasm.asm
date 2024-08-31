@@ -138,31 +138,33 @@ _found_mode:
         ; 1234   11          XYZ ...
         ; 1234   22 00       UVW ...
         ; 1234   33 00 00    RST ...
+        ;
+        ; We decrease oplen an even number of times, so the parity
+        ; remains the same for the argument printing code.
 
-        ldy #$ff                ; count fields -1, 0, 1, 2, 3
+        ldx #$fb                ; count fields -5, -4, -3, -2, -1
 
 _3spcs:
-        ldx #2                  ; print three spaces (X=2,1,0)
+        ldy #2                  ; print three spaces (Y=2,1,0)
 _spcs:
         jsr prspc               ; print a space
-        dex
+        dey
         bpl _spcs
 
-        iny                     ; next 3 char field
-        cpy #4                  ; done?
-        beq find_mnemonic
+        inx                     ; next 3 char field
+        beq find_mnemonic       ; done?
 
-        cpy oplen               ; finished operands?
-        bpl _3spcs              ; right justify
+        dec oplen               ; finished operands?
+        bmi _3spcs              ; right justify
 
         lda (pc)                ; fetch next byte
-        sta opcode,y            ; save to opcode, args
+        sta opcode+4,x          ; save to opcode, args
         inc pc                  ; advance pc
         bne +
         inc pc+1
 +
         jsr prbyte              ; show it
-        bra _spcs               ; X is already <= 0 so _spcs will emit one space
+        bra _spcs               ; Y is already <= 0 so _spcs will emit one space
 
 
         ; -------------------------------------------------------------
