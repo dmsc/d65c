@@ -540,15 +540,19 @@ slice_match:
 
 .else
 
-; things are slightly simpler if we're ignoring bitops
+; Things are slightly simpler if we're ignoring bitops since the slices
+; are exhaustive.  That lets us skip the final check and fall through.
+; Since we loop in reverse the first once disappears and our labels
+; point one byte before the actual data
 
-; we skip final check and just fall through without bitops
-; one mask differs ---------------------------=-+
-;                                               |
-slice_mask = *-1 ;                              v
-    .byte %111, %11, %11111, %11111, %11010111, %11, %11111, %111
+slice_mask = *-1
+    .byte     %111, %11, %11111, %11111, %11010111, %11, %11111, %111
+;          ^                                         ^
+;          |                                         |
+; skipped -+                                         |
+; different -----------------------------------------+
 slice_match = *-1
-    .byte %100, %10, %11010, %10010, %11010100, %11, %00010, %000
+    .byte     %100, %10, %11010, %10010, %11010100, %11, %00010, %000
 
 .endif
 
