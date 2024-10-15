@@ -443,8 +443,8 @@ different data structures overlap to save space.  Here's a rough sketch:
 +------------------+
 
 +------------------+-----------------+----------------------------+
-| mnemonics 0..$40 |   (other data)  | spc mnemonics $44..$4c/$50 |
-|     64 bytes     |     8 bytes     |        16 - 24 bytes       |
+| mnemonics 0..$40 |   (other data)  | spc mnemonics $44..$4b/$4f |
+|    128 bytes     |     8 bytes     |        16 - 24 bytes       |
 +------------------+-----------------+----------------------------+
                   /                   \
                  +---------------------+
