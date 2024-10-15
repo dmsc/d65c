@@ -56,7 +56,7 @@ tmp     .word ?                 ; tmp storage within several routines
 ; terminated by a newline character.
 ; The address in <pc> is incremented just past the disassembled
 ; opcode and any operands so that dasm can be called repeatedly to
-; produce a contiguos disassembly listing.
+; produce a contiguous disassembly listing.
 
         * = $200                ; arbitrary location
 
