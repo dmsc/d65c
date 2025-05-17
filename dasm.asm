@@ -174,6 +174,7 @@ _spcs:
 
 find_mnemonic:
         lda opcode
+        tay                     ; save for later
 
         ; -------------------------------------------------------------
         ; First check opcodes that don't follow a clear pattern
@@ -194,8 +195,8 @@ find_mnemonic:
         ; so we can skip the final check and just fall through
         ldx #n_slice-1
 -
-        lda slice_mask,x
-        and opcode
+        tya                     ; get opcode
+        and slice_mask,x
         cmp slice_match,x
         beq _found_slice
         dex
@@ -213,7 +214,7 @@ find_mnemonic:
         ; x selects first or second of the pair
 
         ldx #mBITOPS
-        lda opcode
+        tya                     ; get opcode
         bpl +                   ; N=x set indicates the second pair
         inx
         inx
@@ -231,8 +232,8 @@ find_mnemonic:
         inx                     ; it's BBR/BBS
         ; update format to mode_ZR.  Nb. the original mode
         ; wasn't mode_R so stashed V flag is still OK
-        ldy #format_ZR
-        sty format
+        lda #format_ZR
+        sta format
 +
         txa
         bra _w2s
@@ -242,7 +243,7 @@ _found_slice:
         ; -------------------------------------------------------------
         ; found a matching slice, calculate index into mnemonic table
 
-        lda opcode              ; aaabbbcc
+        tya                     ; opcode = aaabbbcc
         stx tmp                 ; X is 0, 1,2,3, 4,5,6,7,8
         cpx #n_slice-1          ; check for X=0 with carry bit
         bcs _x0                 ; For X=0 we want index aaabb and leave C=1
